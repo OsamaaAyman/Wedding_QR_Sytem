@@ -2,663 +2,801 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wedding QR System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Wedding QR · Entrance Manager</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600&family=Inter:wght@300;400;500&display=swap');
+:root {
+  --gold:        #c8a96e;
+  --gold-dim:    #a8894e;
+  --gold-glow:   rgba(200,169,110,0.15);
+  --gold-border: rgba(200,169,110,0.25);
+  --ink:         #0d0b08;
+  --ink-mid:     #1e1a12;
+  --ink-soft:    #2e2818;
+  --paper:       #f7f2e8;
+  --text:        #3a3020;
+  --text-muted:  #7a6a4a;
+  --ok:          #3a7a52;
+  --ok-bg:       #e8f5ee;
+  --fail:        #8a2020;
+  --fail-bg:     #f5e8e8;
+  --radius:      6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;}
+body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--paper);min-height:100vh;overflow-x:hidden;}
 
-  :root {
-    --gold: #c9a84c;
-    --gold-light: #e8d5a3;
-    --gold-dark: #9a7a2e;
-    --cream: #faf6ef;
-    --dark: #1a1209;
-    --mid: #3d2e0e;
-    --success: #2d7a4f;
-    --danger: #8b1a1a;
-    --border: rgba(201,168,76,0.3);
-  }
+/* SETUP BANNER */
+#setup-banner{background:linear-gradient(135deg,#3a2a00,#1e1600);border-bottom:1px solid #c8a96e55;padding:14px 20px;font-size:.82rem;color:#e8c880;line-height:1.7;display:none;}
+#setup-banner strong{color:#ffd966;}
+#setup-banner code{background:rgba(255,255,255,.1);padding:1px 6px;border-radius:3px;font-size:.78rem;color:#ffe599;}
+#setup-banner a{color:#ffd966;}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { overflow-x: hidden; width: 100%; }
-  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--dark); min-height: 100vh; }
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:var(--ink);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;}
+.login-wrap{width:100%;max-width:400px;}
+.login-crest{text-align:center;margin-bottom:32px;}
+.login-crest-line{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:6px;}
+.login-crest-line::before,.login-crest-line::after{content:'';flex:1;max-width:60px;height:1px;background:var(--gold-border);}
+.crest-icon{font-size:1.6rem;}
+.login-title{font-family:'Cinzel',serif;font-size:1.6rem;letter-spacing:5px;color:var(--gold);font-weight:400;}
+.login-sub{font-size:.82rem;color:var(--text-muted);letter-spacing:2px;margin-top:4px;}
+.login-card{background:var(--ink-mid);border:1px solid var(--gold-border);border-radius:var(--radius);overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.6);}
+.tab-row{display:flex;border-bottom:1px solid var(--gold-border);}
+.tab-btn{flex:1;padding:13px 8px;background:none;border:none;cursor:pointer;font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:2px;color:var(--text-muted);transition:all .2s;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
+.login-body{padding:28px 24px 24px;}
+.field{margin-bottom:18px;}
+.field label{display:block;font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:2px;color:var(--gold-dim);margin-bottom:7px;}
+.field input{width:100%;padding:11px 14px;background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:4px;color:var(--paper);font-family:'EB Garamond',serif;font-size:1rem;outline:none;transition:border-color .2s;}
+.field input:focus{border-color:var(--gold);}
+.field input::placeholder{color:var(--text-muted);}
+.hint-box{background:rgba(200,169,110,.07);border:1px solid var(--gold-border);border-radius:4px;padding:12px 14px;font-size:.8rem;color:var(--text-muted);line-height:1.7;margin-bottom:18px;}
+.alert-box{border-radius:4px;padding:10px 14px;font-size:.82rem;margin-bottom:14px;display:none;}
+.alert-error{background:var(--fail-bg);color:var(--fail);border:1px solid #d09090;}
+.alert-info{background:var(--ok-bg);color:var(--ok);border:1px solid #90c0a0;}
 
-  nav {
-    background: var(--dark);
-    display: flex; align-items: stretch; flex-wrap: wrap;
-    border-bottom: 2px solid var(--gold);
-    width: 100%;
-  }
-  .nav-brand {
-    padding: 14px 18px;
-    font-family: 'Cinzel', serif;
-    color: var(--gold); font-size: 0.9rem; letter-spacing: 2px;
-    border-right: 1px solid var(--border);
-    display: flex; align-items: center;
-    white-space: nowrap;
-  }
-  .nav-tabs { display: flex; flex: 1; overflow-x: auto; }
-  .nav-tab {
-    padding: 14px 16px; background: none; border: none; cursor: pointer;
-    font-family: 'Cinzel', serif; font-size: 0.72rem; letter-spacing: 1.5px;
-    color: rgba(255,255,255,0.45); transition: all 0.2s;
-    border-bottom: 2px solid transparent; margin-bottom: -2px;
-    white-space: nowrap;
-  }
-  .nav-tab:hover { color: var(--gold-light); }
-  .nav-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border:none;border-radius:4px;cursor:pointer;font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:2px;transition:all .2s;white-space:nowrap;text-transform:uppercase;}
+.btn-full{width:100%;}
+.btn-primary{background:var(--gold);color:var(--ink);font-weight:600;}
+.btn-primary:hover{background:#e0c080;}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+.btn-outline{background:transparent;border:1px solid var(--gold-border);color:var(--gold);}
+.btn-outline:hover{border-color:var(--gold);background:var(--gold-glow);}
+.btn-outline:disabled{opacity:.4;cursor:not-allowed;}
+.btn-danger{background:var(--fail);color:#fff;}
+.btn-danger:hover{background:#a02828;}
+.btn-sm{padding:6px 12px;font-size:.62rem;}
 
-  .page { display: none; padding: 28px 16px; max-width: 1000px; margin: 0 auto; width: 100%; }
-  .page.active { display: block; }
+/* APP SHELL */
+#app{display:none;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--ink-mid);border-bottom:1px solid var(--gold-border);display:flex;align-items:center;padding:0 16px;position:sticky;top:0;z-index:10;flex-wrap:wrap;}
+.topbar-brand{font-family:'Cinzel',serif;color:var(--gold);font-size:.78rem;letter-spacing:3px;padding:14px 16px 14px 0;border-right:1px solid var(--gold-border);white-space:nowrap;display:flex;align-items:center;gap:8px;}
+.session-pill{background:rgba(200,169,110,.12);border:1px solid var(--gold-border);color:var(--gold-dim);font-size:.6rem;letter-spacing:1px;padding:3px 9px;border-radius:20px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Cinzel',serif;}
+.topbar-tabs{display:flex;flex:1;overflow-x:auto;padding-left:8px;}
+.topbar-tab{padding:15px 14px;background:none;border:none;cursor:pointer;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:1.5px;color:var(--text-muted);transition:all .2s;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
+.topbar-tab:hover{color:var(--paper);}
+.topbar-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.topbar-end{margin-left:auto;display:flex;align-items:center;gap:10px;padding:10px 0;}
 
-  .page-header { text-align: center; margin-bottom: 36px; }
-  .page-header .orn { color: var(--gold); font-size: 1rem; letter-spacing: 6px; }
-  .page-header h1 { font-family: 'Cinzel', serif; font-size: 1.9rem; color: var(--mid); letter-spacing: 4px; margin: 8px 0 4px; }
-  .page-header p { color: #7a6040; font-size: 0.85rem; letter-spacing: 1px; }
+/* SYNC BAR */
+.syncbar{background:var(--ink-soft);border-bottom:1px solid rgba(200,169,110,.1);padding:6px 18px;display:flex;align-items:center;gap:8px;font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:1.5px;color:var(--text-muted);}
+.sync-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.sync-dot.live{background:var(--ok);box-shadow:0 0 6px var(--ok);animation:pdot 2s infinite;}
+.sync-dot.syncing{background:var(--gold);animation:pdot .5s infinite;}
+.sync-dot.offline{background:#666;}
+.sync-dot.error{background:var(--fail);}
+@keyframes pdot{0%,100%{opacity:1}50%{opacity:.3}}
 
-  .divider { display: flex; align-items: center; gap: 12px; margin: 24px 0; color: var(--gold); font-size: 0.75rem; letter-spacing: 3px; }
-  .divider::before, .divider::after { content:''; flex:1; height:1px; background: var(--border); }
+/* MAIN */
+.main{flex:1;padding:28px 16px;max-width:960px;margin:0 auto;width:100%;}
+.page{display:none;}
+.page.active{display:block;}
+.page-head{text-align:center;margin-bottom:32px;}
+.page-head .ornament{color:var(--gold-dim);letter-spacing:8px;font-size:.85rem;}
+.page-head h1{font-family:'Cinzel',serif;font-weight:400;font-size:clamp(1.4rem,4vw,2rem);color:var(--paper);letter-spacing:4px;margin:8px 0 6px;}
+.page-head p{color:var(--text-muted);font-size:.88rem;letter-spacing:1px;}
+.panel{background:var(--ink-mid);border:1px solid var(--gold-border);border-radius:var(--radius);padding:22px;margin-bottom:20px;}
+.divider{display:flex;align-items:center;gap:12px;margin:24px 0;color:var(--gold-dim);font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:3px;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--gold-border);}
+.form-row{display:flex;gap:14px;flex-wrap:wrap;}
+.form-row>*{flex:1;min-width:160px;}
+.form-field{margin-bottom:14px;}
+.form-field label{display:block;font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:2px;color:var(--gold-dim);margin-bottom:7px;}
+.form-field input{width:100%;padding:10px 13px;background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:4px;color:var(--paper);font-family:'EB Garamond',serif;font-size:1rem;outline:none;transition:border-color .2s;}
+.form-field input:focus{border-color:var(--gold);}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.info-strip{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.15);border-radius:4px;padding:11px 14px;font-size:.8rem;color:var(--text-muted);line-height:1.7;margin-top:14px;}
 
-  .card { background: white; border: 1px solid var(--border); border-radius: 4px; padding: 20px; box-shadow: 0 4px 24px rgba(201,168,76,0.07); }
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0;}
+.stat{background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:var(--radius);padding:18px 8px;text-align:center;}
+.stat-num{display:block;font-family:'Cinzel',serif;font-size:clamp(1.4rem,5vw,2rem);color:var(--gold);}
+.stat-lbl{font-size:.6rem;letter-spacing:2px;color:var(--text-muted);margin-top:4px;}
 
-  label { display: block; font-family: 'Cinzel', serif; font-size: 0.72rem; letter-spacing: 2px; color: var(--mid); margin-bottom: 7px; }
-  input[type="number"], input[type="text"] {
-    width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 3px;
-    font-size: 0.95rem; font-family: 'Inter', sans-serif; background: var(--cream); color: var(--dark);
-    outline: none; transition: border-color 0.2s;
-  }
-  input:focus { border-color: var(--gold); }
+/* QR GRID */
+#qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;max-height:480px;overflow-y:auto;padding:2px;}
+.qr-item{background:var(--paper);border-radius:4px;padding:10px 8px;text-align:center;border:1px solid var(--gold-border);}
+.qr-item canvas,.qr-item img{width:108px!important;height:108px!important;max-width:100%!important;}
+.qr-lbl{font-size:.6rem;color:var(--text-muted);margin-top:5px;font-family:'Cinzel',serif;letter-spacing:1px;}
 
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 11px 18px; border: none; border-radius: 3px;
-    cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.68rem;
-    letter-spacing: 1.5px; transition: all 0.2s; text-transform: uppercase;
-    white-space: nowrap;
-  }
-  .btn-gold { background: var(--gold); color: var(--dark); }
-  .btn-gold:hover { background: var(--gold-dark); color: white; }
-  .btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
-  .btn-outline:hover { background: var(--gold); color: var(--dark); }
-  .btn-danger { background: var(--danger); color: white; }
-  .btn-danger:hover { background: #6b1010; }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+/* SCANNER */
+.scanner-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+@media(max-width:640px){.scanner-layout{grid-template-columns:1fr;}}
+#video-wrap{position:relative;background:#000;border-radius:var(--radius);overflow:hidden;aspect-ratio:1;border:2px solid var(--gold-border);}
+#scanner-video{width:100%;height:100%;object-fit:cover;display:block;}
+.scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.scan-frame{width:58%;aspect-ratio:1;border:2px solid var(--gold);border-radius:4px;position:relative;animation:fpulse 2s ease-in-out infinite;}
+@keyframes fpulse{0%,100%{opacity:1}50%{opacity:.5}}
+.scan-frame::before,.scan-frame::after,.scan-frame>span::before,.scan-frame>span::after{content:'';position:absolute;width:16px;height:16px;border-color:var(--gold);border-style:solid;}
+.scan-frame::before{top:-2px;left:-2px;border-width:3px 0 0 3px}
+.scan-frame::after{top:-2px;right:-2px;border-width:3px 3px 0 0}
+.scan-frame>span::before{bottom:-2px;left:-2px;border-width:0 0 3px 3px}
+.scan-frame>span::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:sweep 2s linear infinite;}
+@keyframes sweep{0%{top:5%}100%{top:95%}}
+.result-box{border-radius:var(--radius);padding:26px 16px;text-align:center;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px solid var(--gold-border);background:var(--ink-soft);transition:all .25s;}
+.result-box.ok{background:var(--ok-bg);border-color:var(--ok);animation:fok .3s;}
+.result-box.fail{background:var(--fail-bg);border-color:var(--fail);animation:ffail .3s;}
+@keyframes fok{from{background:#b0f0cc}to{background:var(--ok-bg)}}
+@keyframes ffail{from{background:#f0b0b0}to{background:var(--fail-bg)}}
+.result-icon{font-size:2.2rem;}
+.result-title{font-family:'Cinzel',serif;font-size:1rem;letter-spacing:2px;color:var(--paper);}
+.result-box.ok .result-title{color:var(--ok);}
+.result-box.fail .result-title{color:var(--fail);}
+.result-sub{font-size:.8rem;color:var(--text-muted);}
+.log-list{max-height:200px;overflow-y:auto;border:1px solid var(--gold-border);border-radius:4px;background:var(--ink-soft);}
+.log-item{display:flex;align-items:center;gap:10px;padding:9px 13px;font-size:.8rem;border-bottom:1px solid rgba(200,169,110,.1);}
+.log-item:last-child{border-bottom:none;}
+.log-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.log-dot.ok{background:var(--ok);}
+.log-dot.fail{background:var(--fail);}
+.log-time{color:var(--text-muted);font-size:.68rem;margin-left:auto;}
+.log-empty{padding:20px;text-align:center;color:var(--text-muted);font-size:.82rem;}
+.manual-row{display:flex;gap:8px;margin-top:12px;}
+.manual-row input{flex:1;padding:10px 13px;background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:4px;color:var(--paper);font-family:'EB Garamond',serif;font-size:1rem;outline:none;}
+.manual-row input:focus{border-color:var(--gold);}
 
-  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .form-row { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; }
-  .form-row > * { flex: 1; min-width: 140px; }
+/* MANAGE */
+.manage-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(200,169,110,.1);flex-wrap:wrap;font-size:.85rem;}
+.manage-num{font-family:'Cinzel',serif;font-size:.7rem;color:var(--gold);width:40px;flex-shrink:0;}
+.manage-code{font-family:monospace;font-size:.78rem;color:var(--text-muted);flex:1;min-width:120px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.64rem;letter-spacing:1px;font-family:'Cinzel',serif;}
+.badge-used{background:var(--fail-bg);color:var(--fail);}
+.badge-unused{background:var(--ok-bg);color:var(--ok);}
+.manage-count{font-family:'Cinzel',serif;font-size:.68rem;color:var(--text-muted);margin-left:auto;}
+.empty-state{text-align:center;padding:48px 20px;color:var(--text-muted);}
+.empty-icon{font-size:2.8rem;margin-bottom:12px;}
 
-  .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 20px 0; }
-  .stat-card { background: var(--dark); border-radius: 4px; padding: 16px 8px; text-align: center; border: 1px solid var(--border); }
-  .stat-num { font-family: 'Cinzel', serif; font-size: 1.7rem; color: var(--gold); display: block; }
-  .stat-label { font-size: 0.62rem; letter-spacing: 1.5px; color: rgba(255,255,255,0.45); margin-top: 4px; }
+/* PROGRESS */
+#progress-overlay{display:none;position:fixed;inset:0;background:rgba(13,11,8,.9);z-index:300;align-items:center;justify-content:center;}
+#progress-overlay.show{display:flex;}
+.progress-card{background:var(--ink-mid);border:2px solid var(--gold-border);border-radius:var(--radius);padding:40px 50px;text-align:center;min-width:300px;box-shadow:0 40px 100px rgba(0,0,0,.7);}
+.progress-title{font-family:'Cinzel',serif;font-size:.9rem;letter-spacing:3px;color:var(--gold);margin-bottom:20px;}
+.progress-track{background:var(--ink-soft);border-radius:20px;height:8px;overflow:hidden;margin-bottom:10px;}
+.progress-fill{height:100%;background:var(--gold);width:0%;transition:width .1s;border-radius:20px;}
+.progress-pct{font-size:.85rem;color:var(--text-muted);}
 
-  #qr-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr));
-    gap: 12px; max-height: 500px; overflow-y: auto; padding: 4px;
-  }
-  .qr-item { border: 1px solid var(--border); border-radius: 4px; padding: 10px 8px; text-align: center; background: white; }
-  .qr-item canvas, .qr-item img { width: 110px !important; height: 110px !important; max-width: 100% !important; }
-  .qr-name  { font-size: 0.6rem; color: var(--gold-dark); margin-top: 5px; }
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--ink-soft);}
+::-webkit-scrollbar-thumb{background:var(--gold-border);border-radius:3px;}
 
-  .scanner-area { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
-  @media(max-width:660px){ .scanner-area { grid-template-columns: 1fr; } }
-
-  #video-container {
-    position: relative; background: var(--dark); border-radius: 4px;
-    overflow: hidden; aspect-ratio: 1; border: 2px solid var(--border);
-  }
-  #video-container video { width:100%; height:100%; object-fit:cover; display:block; }
-  .scan-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; }
-  .scan-frame {
-    width:60%; aspect-ratio:1; border:2px solid var(--gold); border-radius:4px;
-    position:relative; animation: pulse 2s ease-in-out infinite;
-  }
-  .scan-frame::before,.scan-frame::after,.scan-frame>span::before,.scan-frame>span::after{
-    content:''; position:absolute; width:18px; height:18px; border-color:var(--gold); border-style:solid;
-  }
-  .scan-frame::before{top:-2px;left:-2px;border-width:3px 0 0 3px}
-  .scan-frame::after{top:-2px;right:-2px;border-width:3px 3px 0 0}
-  .scan-frame>span::before{bottom:-2px;left:-2px;border-width:0 0 3px 3px}
-  .scan-frame>span::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-  .scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:scanline 2s linear infinite;}
-  @keyframes scanline{0%{top:5%}100%{top:95%}}
-
-  .result-panel { display:flex; flex-direction:column; gap:16px; }
-  .result-box {
-    border-radius:4px; padding:24px; text-align:center; min-height:116px;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
-    transition:all .3s; border:2px solid transparent;
-  }
-  .result-box.idle{background:#f5f0e8;border-color:var(--border)}
-  .result-box.success{background:#e8f5ee;border-color:var(--success);animation:fg .4s}
-  .result-box.error{background:#f5e8e8;border-color:var(--danger);animation:fr .4s}
-  @keyframes fg{0%{background:#b8f0cc}100%{background:#e8f5ee}}
-  @keyframes fr{0%{background:#f0b8b8}100%{background:#f5e8e8}}
-  .result-icon{font-size:2.4rem}
-  .result-title{font-family:'Cinzel',serif;font-size:.95rem;letter-spacing:2px}
-  .result-sub{font-size:.78rem;color:#7a6040}
-  .result-box.success .result-title{color:var(--success)}
-  .result-box.error .result-title{color:var(--danger)}
-
-  .log-list{max-height:210px;overflow-y:auto;border:1px solid var(--border);border-radius:3px;background:white}
-  .log-item{display:flex;align-items:center;gap:10px;padding:9px 13px;font-size:.78rem;border-bottom:1px solid var(--border)}
-  .log-item:last-child{border-bottom:none}
-  .log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-  .log-dot.ok{background:var(--success)} .log-dot.fail{background:var(--danger)}
-  .log-time{color:#aaa;font-size:.68rem;margin-left:auto}
-
-  .manage-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);font-size:.83rem;flex-wrap:wrap}
-  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.67rem;letter-spacing:1px;font-family:'Cinzel',serif}
-  .badge-unused{background:#e8f5ee;color:var(--success)} .badge-used{background:#f5e8e8;color:var(--danger)}
-  .empty-state{text-align:center;padding:48px 24px;color:#aaa}
-  .empty-state .ei{font-size:3rem;margin-bottom:12px}
-
-  #manual-input{display:flex;gap:8px;margin-top:12px}
-  #manual-input input{flex:1}
-
-  #progress-overlay{
-    display:none; position:fixed; inset:0; background:rgba(26,18,9,0.85);
-    align-items:center; justify-content:center; z-index:999; flex-direction:column; gap:20px;
-  }
-  #progress-overlay.show{display:flex}
-  .progress-box{background:white;border-radius:6px;padding:36px 48px;text-align:center;min-width:300px;border:2px solid var(--gold)}
-  .progress-title{font-family:'Cinzel',serif;font-size:1rem;letter-spacing:3px;color:var(--mid);margin-bottom:16px}
-  .progress-bar-wrap{background:#f0e8d8;border-radius:20px;height:10px;overflow:hidden;margin-bottom:12px}
-  .progress-bar{height:100%;background:var(--gold);width:0%;transition:width .1s;border-radius:20px}
-  .progress-pct{font-size:.85rem;color:#7a6040}
+@media print{
+  #login-screen,.topbar,.syncbar,.btn-row,.manual-row,#progress-overlay,#setup-banner{display:none!important}
+  body{background:white;color:black;}
+  .main{padding:0;}
+  .page{display:block!important;}
+  #page-scan,#page-manage{display:none!important;}
+  #qr-grid{max-height:none;grid-template-columns:repeat(4,1fr);}
+}
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="nav-brand">&#9830; WEDDING QR</div>
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="showPage('gen',this)">Generate</button>
-    <button class="nav-tab" onclick="showPage('scan',this)">Scanner</button>
-    <button class="nav-tab" onclick="showPage('manage',this)">Manage</button>
-  </div>
-</nav>
-
-<div id="progress-overlay">
-  <div class="progress-box">
-    <div class="progress-title">GENERATING PDF</div>
-    <div class="progress-bar-wrap"><div class="progress-bar" id="prog-bar"></div></div>
-    <div class="progress-pct" id="prog-txt">0%</div>
-  </div>
+<div id="setup-banner">
+  &#9881; <strong>Supabase not configured.</strong>
+  Open this file, find <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code> near the top of the script and paste your values from
+  <a href="https://supabase.com" target="_blank">supabase.com</a> &rarr; Project Settings &rarr; API.
+  Also run the SQL block at the very bottom of this file in Supabase SQL Editor.
 </div>
 
-<!-- GENERATE -->
-<div class="page active" id="page-gen">
-  <div class="page-header">
-    <div class="orn">&#10022; &#10022; &#10022;</div>
-    <h1>QR Generator</h1>
-    <p>Create unique entrance codes for your celebration</p>
-  </div>
-
-  <div class="card">
-    <div class="form-row">
-      <div>
-        <label>Couple / Event Name</label>
-        <input type="text" id="event-name" placeholder="Sarah &amp; Ahmed">
-      </div>
-      <div>
-        <label>Number of QR Codes</label>
-        <input type="number" id="qr-count" value="350" min="1" max="1000">
-      </div>
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-crest">
+      <div class="login-crest-line"><span class="crest-icon">&#9830;</span></div>
+      <div class="login-title">WEDDING QR</div>
+      <div class="login-sub">ENTRANCE MANAGEMENT</div>
     </div>
-    <br>
-    <div class="btn-row">
-      <button class="btn btn-gold" onclick="generateQRs()">&#10022; Generate Codes</button>
-      <button class="btn btn-outline" id="dl-btn" onclick="downloadPDF()" disabled>&#8595; Download PDFs (ZIP)</button>
-      <button class="btn btn-outline" onclick="window.print()" id="print-btn" disabled>&#9113; Print Sheet</button>
-    </div>
-    <br>
-    <div style="background:#fffbf0;border:1px solid var(--gold-light);border-radius:3px;padding:11px 14px;font-size:.8rem;color:var(--mid);line-height:1.7;">
-      <strong style="font-family:'Cinzel',serif;letter-spacing:1px;">Individual PDFs</strong> — Downloads a ZIP containing one PDF per guest. PDF files inside ZIPs are never blocked by Windows. Right-click the ZIP &rarr; Extract All, then share or print each guest's PDF.
-    </div>
-  </div>
-
-  <div class="divider">PREVIEW</div>
-  <div id="qr-grid">
-    <div class="empty-state"><div class="ei">&#9672;</div><div>Set count and press Generate</div></div>
-  </div>
-</div>
-
-<!-- SCANNER -->
-<div class="page" id="page-scan">
-  <div class="page-header">
-    <div class="orn">&#10022; &#10022; &#10022;</div>
-    <h1>Guest Scanner</h1>
-    <p>Scan QR codes at the entrance — each code works once only</p>
-  </div>
-
-  <div class="stats-row">
-    <div class="stat-card"><span class="stat-num" id="stat-total">0</span><div class="stat-label">Total Codes</div></div>
-    <div class="stat-card"><span class="stat-num" id="stat-scanned">0</span><div class="stat-label">Scanned</div></div>
-    <div class="stat-card"><span class="stat-num" id="stat-remaining">0</span><div class="stat-label">Remaining</div></div>
-  </div>
-
-  <div class="scanner-area">
-    <div>
-      <div id="video-container">
-        <video id="scanner-video" autoplay playsinline muted></video>
-        <div class="scan-overlay"><div class="scan-frame"><span></span><div class="scan-line"></div></div></div>
+    <div class="login-card">
+      <div class="tab-row">
+        <button class="tab-btn active" id="tab-join"   onclick="switchTab('join')">Join Session</button>
+        <button class="tab-btn"        id="tab-create" onclick="switchTab('create')">New Session</button>
       </div>
-      <br>
-      <div class="btn-row" style="margin-top:12px;">
-        <button class="btn btn-gold" onclick="startCamera()" id="start-btn">&#9654; Start Camera</button>
-        <button class="btn btn-outline" onclick="stopCamera()" id="stop-btn" disabled>&#9632; Stop</button>
-      </div>
-      <div id="manual-input">
-        <input type="text" id="manual-code" placeholder="Or type / paste code manually…" onkeydown="if(event.key==='Enter')manualCheck()">
-        <button class="btn btn-outline" onclick="manualCheck()">Check</button>
-      </div>
-    </div>
+      <div class="login-body">
+        <div id="login-err" class="alert-box alert-error"></div>
+        <div id="login-ok"  class="alert-box alert-info"></div>
 
-    <div class="result-panel">
-      <div class="result-box idle" id="result-box">
-        <div class="result-icon">&#9672;</div>
-        <div class="result-title">READY TO SCAN</div>
-        <div class="result-sub">Point camera at a guest QR code</div>
-      </div>
-      <div>
-        <label>Recent Scans</label>
-        <div class="log-list" id="log-list">
-          <div class="log-item" style="color:#aaa;justify-content:center;">No scans yet</div>
+        <div id="panel-join">
+          <div class="field">
+            <label>Session Name</label>
+            <input type="text" id="join-name" placeholder="e.g. Sarah &amp; Ahmed 2025" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" id="join-pass" placeholder="Session password" onkeydown="if(event.key==='Enter')doJoin()">
+          </div>
+          <button class="btn btn-primary btn-full" id="join-btn" onclick="doJoin()">&#9654; Join Session</button>
+        </div>
+
+        <div id="panel-create" style="display:none">
+          <div class="hint-box">
+            Create a session for your event. Share the <strong>session name + password</strong> with all door staff — they open this page and join with the same credentials.
+          </div>
+          <div class="field">
+            <label>Session / Event Name</label>
+            <input type="text" id="create-name" placeholder="e.g. Sarah &amp; Ahmed 2025">
+          </div>
+          <div class="field">
+            <label>Password (share with staff)</label>
+            <input type="password" id="create-pass" placeholder="Choose a shared password" onkeydown="if(event.key==='Enter')doCreate()">
+          </div>
+          <button class="btn btn-primary btn-full" id="create-btn" onclick="doCreate()">&#9672; Create Session</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- MANAGE -->
-<div class="page" id="page-manage">
-  <div class="page-header">
-    <div class="orn">&#10022; &#10022; &#10022;</div>
-    <h1>Manage Codes</h1>
-    <p>View and reset the status of all codes</p>
-  </div>
-  <div class="card" style="margin-bottom:20px;">
-    <div class="btn-row" style="align-items:center;">
-      <button class="btn btn-outline" onclick="renderManage('all')">All</button>
-      <button class="btn btn-outline" onclick="renderManage('unused')">Unused</button>
-      <button class="btn btn-outline" onclick="renderManage('used')">Used</button>
-      <span style="margin-left:auto;font-size:.78rem;color:#aaa" id="manage-count"></span>
-      <button class="btn btn-danger" onclick="resetAll()">&#8634; Reset All Used</button>
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">
+      &#9830; WEDDING QR
+      <span class="session-pill" id="session-pill">&#8212;</span>
+    </div>
+    <div class="topbar-tabs">
+      <button class="topbar-tab active" onclick="showPage('gen',this)">Generate</button>
+      <button class="topbar-tab"        onclick="showPage('scan',this)">Scanner</button>
+      <button class="topbar-tab"        onclick="showPage('manage',this)">Manage</button>
+    </div>
+    <div class="topbar-end">
+      <button class="btn btn-outline btn-sm" onclick="doLogout()">&#10005; Logout</button>
     </div>
   </div>
-  <div id="manage-list"><div class="empty-state"><div class="ei">&#9672;</div><div>No codes generated yet.</div></div></div>
+  <div class="syncbar">
+    <span class="sync-dot offline" id="sync-dot"></span>
+    <span id="sync-text">Connecting&hellip;</span>
+  </div>
+
+  <div class="main">
+
+    <!-- GENERATE -->
+    <div class="page active" id="page-gen">
+      <div class="page-head">
+        <div class="ornament">&#10022; &#10022; &#10022;</div>
+        <h1>QR Generator</h1>
+        <p>Create unique entrance codes for your celebration</p>
+      </div>
+      <div class="panel">
+        <div class="form-row">
+          <div class="form-field">
+            <label>Couple / Event Name (printed on cards)</label>
+            <input type="text" id="event-name" placeholder="Sarah &amp; Ahmed">
+          </div>
+          <div class="form-field">
+            <label>Number of QR Codes</label>
+            <input type="number" id="qr-count" value="50" min="1" max="1000">
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:8px;">
+          <button class="btn btn-primary" onclick="generateQRs()" id="gen-btn">&#10022; Generate Codes</button>
+          <button class="btn btn-outline" id="dl-btn"    onclick="downloadPDF()" disabled>&#8595; Download ZIP</button>
+          <button class="btn btn-outline" id="print-btn" onclick="window.print()" disabled>&#9113; Print</button>
+        </div>
+        <div class="info-strip" id="gen-info">Generate codes — they save to the database and sync to all devices instantly.</div>
+      </div>
+      <div class="divider">PREVIEW</div>
+      <div id="qr-grid"><div class="empty-state"><div class="empty-icon">&#9671;</div><div>No codes yet</div></div></div>
+    </div>
+
+    <!-- SCANNER -->
+    <div class="page" id="page-scan">
+      <div class="page-head">
+        <div class="ornament">&#10022; &#10022; &#10022;</div>
+        <h1>Guest Scanner</h1>
+        <p>Each code is valid once &mdash; scans sync live across all devices</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat"><span class="stat-num" id="stat-total">0</span><div class="stat-lbl">Total</div></div>
+        <div class="stat"><span class="stat-num" id="stat-scanned">0</span><div class="stat-lbl">Scanned</div></div>
+        <div class="stat"><span class="stat-num" id="stat-remaining">0</span><div class="stat-lbl">Remaining</div></div>
+      </div>
+      <div class="scanner-layout">
+        <div>
+          <div id="video-wrap">
+            <video id="scanner-video" autoplay playsinline muted></video>
+            <div class="scan-overlay"><div class="scan-frame"><span></span><div class="scan-line"></div></div></div>
+          </div>
+          <div class="btn-row" style="margin-top:12px;">
+            <button class="btn btn-primary" id="start-btn" onclick="startCamera()">&#9654; Start Camera</button>
+            <button class="btn btn-outline" id="stop-btn"  onclick="stopCamera()" disabled>&#9632; Stop</button>
+          </div>
+          <div class="manual-row">
+            <input type="text" id="manual-code" placeholder="Or type / paste code&hellip;" onkeydown="if(event.key==='Enter')manualCheck()">
+            <button class="btn btn-outline" onclick="manualCheck()">Check</button>
+          </div>
+        </div>
+        <div>
+          <div class="result-box" id="result-box">
+            <div class="result-icon">&#9671;</div>
+            <div class="result-title">READY</div>
+            <div class="result-sub">Point camera at a guest QR code</div>
+          </div>
+          <div style="margin-top:16px;">
+            <div style="font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:2px;color:var(--gold-dim);margin-bottom:8px;">RECENT SCANS</div>
+            <div class="log-list" id="log-list"><div class="log-empty">No scans yet</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MANAGE -->
+    <div class="page" id="page-manage">
+      <div class="page-head">
+        <div class="ornament">&#10022; &#10022; &#10022;</div>
+        <h1>Manage Codes</h1>
+        <p>View and reset codes in this session only</p>
+      </div>
+      <div class="panel">
+        <div class="btn-row">
+          <button class="btn btn-outline btn-sm" onclick="renderManage('all')">All</button>
+          <button class="btn btn-outline btn-sm" onclick="renderManage('unused')">Unused</button>
+          <button class="btn btn-outline btn-sm" onclick="renderManage('used')">Used</button>
+          <span class="manage-count" id="manage-count"></span>
+          <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="resetAllUsed()">&#8634; Reset All Used</button>
+        </div>
+      </div>
+      <div class="panel" id="manage-list">
+        <div class="empty-state"><div class="empty-icon">&#9671;</div><div>No codes generated yet</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="progress-overlay">
+  <div class="progress-card">
+    <div class="progress-title">GENERATING PDFs</div>
+    <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+    <div class="progress-pct" id="prog-txt">0%</div>
+  </div>
 </div>
 
 <script>
-// STATE
-let codes   = JSON.parse(localStorage.getItem('wqr_codes') || '[]');
-let usedSet = new Set(JSON.parse(localStorage.getItem('wqr_used') || '[]'));
-let scanLog = JSON.parse(localStorage.getItem('wqr_log')   || '[]');
+// ════════════════════════════════════════════════════
+//  SUPABASE CONFIG  — paste your values here
+//  Get them from: supabase.com → your project →
+//  Project Settings → API
+// ════════════════════════════════════════════════════
+var SUPABASE_URL      = 'PASTE_YOUR_SUPABASE_URL_HERE';
+var SUPABASE_ANON_KEY = 'PASTE_YOUR_SUPABASE_ANON_KEY_HERE';
+// ════════════════════════════════════════════════════
 
-function save(){
-  localStorage.setItem('wqr_codes', JSON.stringify(codes));
-  localStorage.setItem('wqr_used',  JSON.stringify([...usedSet]));
-  localStorage.setItem('wqr_log',   JSON.stringify(scanLog.slice(-200)));
+var CONFIGURED = SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY.length > 20;
+if (!CONFIGURED) document.getElementById('setup-banner').style.display = 'block';
+
+var sb = CONFIGURED ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+// ── STATE ─────────────────────────────────────────────
+var SESSION_ID   = null;
+var SESSION_NAME = null;
+var codes        = [];
+var usedSet      = new Set();
+var scanLog      = [];
+var realtimeSub  = null;
+
+// ── LOGIN ─────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('tab-join').classList.toggle('active',   tab==='join');
+  document.getElementById('tab-create').classList.toggle('active', tab==='create');
+  document.getElementById('panel-join').style.display   = tab==='join'   ? '' : 'none';
+  document.getElementById('panel-create').style.display = tab==='create' ? '' : 'none';
+  clearAlerts();
+}
+function showErr(msg){ var el=document.getElementById('login-err'); el.textContent=msg; el.style.display='block'; document.getElementById('login-ok').style.display='none'; }
+function showOk(msg) { var el=document.getElementById('login-ok');  el.textContent=msg; el.style.display='block'; document.getElementById('login-err').style.display='none'; }
+function clearAlerts(){ document.getElementById('login-err').style.display='none'; document.getElementById('login-ok').style.display='none'; }
+function btnLoad(id,on,lbl){ var b=document.getElementById(id); b.disabled=on; b.textContent=on?'…':lbl; }
+
+async function doCreate() {
+  if (!CONFIGURED) { showErr('Supabase not configured — see the banner.'); return; }
+  var name = document.getElementById('create-name').value.trim();
+  var pass = document.getElementById('create-pass').value.trim();
+  if (!name) { showErr('Enter a session name.'); return; }
+  if (!pass) { showErr('Enter a password.'); return; }
+  btnLoad('create-btn', true, '◆ Create Session');
+
+  var check = await sb.from('sessions').select('id').ilike('name', name).maybeSingle();
+  if (check.data) { showErr('Session name already exists. Use "Join Session".'); btnLoad('create-btn',false,'◆ Create Session'); return; }
+
+  var res = await sb.from('sessions').insert({ name, password_hash: hash(pass) }).select().single();
+  if (res.error) { showErr('Error: '+res.error.message); btnLoad('create-btn',false,'◆ Create Session'); return; }
+
+  showOk('Session created! Joining…');
+  setTimeout(function(){ enterApp(res.data.id, name); }, 600);
 }
 
-// NAV
-function showPage(id, btn){
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  btn.classList.add('active');
-  if(id === 'scan')   updateStats();
-  if(id === 'manage') renderManage('all');
+async function doJoin() {
+  if (!CONFIGURED) { showErr('Supabase not configured — see the banner.'); return; }
+  var name = document.getElementById('join-name').value.trim();
+  var pass = document.getElementById('join-pass').value.trim();
+  if (!name) { showErr('Enter the session name.'); return; }
+  if (!pass) { showErr('Enter the password.'); return; }
+  btnLoad('join-btn', true, '▶ Join Session');
+
+  var res = await sb.from('sessions').select('id,name,password_hash').ilike('name',name).maybeSingle();
+  if (res.error || !res.data) { showErr('Session not found. Check the name or create a new one.'); btnLoad('join-btn',false,'▶ Join Session'); return; }
+  if (res.data.password_hash !== hash(pass)) { showErr('Incorrect password.'); btnLoad('join-btn',false,'▶ Join Session'); return; }
+
+  enterApp(res.data.id, res.data.name);
 }
 
-// GENERATE
-function uid(){
-  return 'WED-' + Math.random().toString(36).substr(2,4).toUpperCase()
-                + Math.random().toString(36).substr(2,4).toUpperCase();
-}
+// ── ENTER APP ─────────────────────────────────────────
+async function enterApp(sessionId, sessionName) {
+  SESSION_ID   = sessionId;
+  SESSION_NAME = sessionName;
+  localStorage.setItem('wqr_session', JSON.stringify({ id:sessionId, name:sessionName }));
 
-function generateQRs(){
-  const count = parseInt(document.getElementById('qr-count').value);
-  const name  = document.getElementById('event-name').value.trim() || 'Wedding';
-  if(!count || count < 1){ alert('Enter a valid number.'); return; }
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display          = 'flex';
+  document.getElementById('session-pill').textContent   = sessionName;
+  document.getElementById('event-name').value           = sessionName;
 
-  codes   = [];
-  usedSet = new Set();
-  scanLog = [];
-  for(let i = 1; i <= count; i++) codes.push({ id: uid(), num: i, name: name });
-  save();
-
-  const grid = document.getElementById('qr-grid');
-  grid.innerHTML = '';
-
-  codes.forEach(function(c){
-    const div  = document.createElement('div');
-    div.className = 'qr-item';
-    div.id = 'qi-' + c.id;
-
-    const qDiv = document.createElement('div');
-    new QRCode(qDiv, {
-      text: c.id, width: 115, height: 115,
-      colorDark: '#1a1209', colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-
-    const lbl = null; // guest number label removed
-
-    const nm = document.createElement('div');
-    nm.className = 'qr-name';
-    nm.textContent = c.name;
-
-    div.appendChild(qDiv);
-    div.appendChild(nm);
-    grid.appendChild(div);
-  });
-
-  document.getElementById('dl-btn').disabled    = false;
-  document.getElementById('print-btn').disabled = false;
+  setSyncStatus('syncing','Loading…');
+  await loadCodes();
+  subscribeRealtime();
   updateStats();
 }
 
-// PDF DOWNLOAD — one PDF per guest, all packed in a ZIP
-function loadScript(src){
-  return new Promise(function(res, rej){
-    var s = document.createElement('script');
-    s.src = src; s.onload = res; s.onerror = rej;
-    document.head.appendChild(s);
+async function loadCodes() {
+  var res = await sb.from('codes').select('*').eq('session_id',SESSION_ID).order('num',{ascending:true});
+  if (res.error) { setSyncStatus('error','Load error'); return; }
+  codes   = res.data || [];
+  usedSet = new Set(codes.filter(function(c){ return c.used_at !== null; }).map(function(c){ return c.code_id; }));
+  if (codes.length > 0) renderQRGrid();
+  updateStats();
+  setSyncStatus('live','Live · '+codes.length+' codes');
+}
+
+// ── REALTIME ──────────────────────────────────────────
+function subscribeRealtime() {
+  if (realtimeSub) { sb.removeChannel(realtimeSub); realtimeSub=null; }
+  realtimeSub = sb.channel('codes-'+SESSION_ID)
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'codes',filter:'session_id=eq.'+SESSION_ID}, function(p){
+      var u = p.new;
+      var idx = codes.findIndex(function(c){ return c.code_id===u.code_id; });
+      if (idx!==-1) codes[idx]=u;
+      if (u.used_at) usedSet.add(u.code_id); else usedSet.delete(u.code_id);
+      updateStats();
+      setSyncStatus('live','Live · updated '+new Date().toLocaleTimeString());
+    })
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'codes',filter:'session_id=eq.'+SESSION_ID}, function(p){
+      codes.push(p.new); updateStats();
+    })
+    .subscribe(function(status){
+      if (status==='SUBSCRIBED') setSyncStatus('live','Live · synced');
+      if (status==='CHANNEL_ERROR') setSyncStatus('error','Realtime error');
+    });
+}
+
+// ── LOGOUT ────────────────────────────────────────────
+function doLogout() {
+  if (realtimeSub) { sb.removeChannel(realtimeSub); realtimeSub=null; }
+  stopCamera();
+  SESSION_ID=SESSION_NAME=null; codes=[]; usedSet=new Set(); scanLog=[];
+  localStorage.removeItem('wqr_session');
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='';
+  document.getElementById('qr-grid').innerHTML='<div class="empty-state"><div class="empty-icon">&#9671;</div><div>No codes yet</div></div>';
+  document.getElementById('join-name').value=''; document.getElementById('join-pass').value='';
+  clearAlerts(); switchTab('join');
+}
+
+// ── NAV ───────────────────────────────────────────────
+function showPage(id,btn) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.topbar-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if (id==='scan')   updateStats();
+  if (id==='manage') renderManage('all');
+}
+
+// ── GENERATE ──────────────────────────────────────────
+function uid(){ return 'WED-'+Math.random().toString(36).substr(2,4).toUpperCase()+Math.random().toString(36).substr(2,4).toUpperCase(); }
+
+async function generateQRs() {
+  if (!SESSION_ID) return;
+  var count = parseInt(document.getElementById('qr-count').value);
+  var name  = document.getElementById('event-name').value.trim() || 'Wedding';
+  if (!count||count<1) { alert('Enter a valid number.'); return; }
+
+  document.getElementById('gen-btn').disabled=true;
+  document.getElementById('gen-info').textContent='Saving to database…';
+
+  // Delete previous codes for this session
+  await sb.from('codes').delete().eq('session_id',SESSION_ID);
+
+  var batch=[];
+  for (var i=1;i<=count;i++) batch.push({session_id:SESSION_ID,code_id:uid(),num:i,name:name,used_at:null});
+
+  var CHUNK=500;
+  for (var j=0;j<batch.length;j+=CHUNK) {
+    var res=await sb.from('codes').insert(batch.slice(j,j+CHUNK));
+    if (res.error) { alert('DB error: '+res.error.message); document.getElementById('gen-btn').disabled=false; return; }
+  }
+
+  codes=batch; usedSet=new Set(); scanLog=[];
+  renderQRGrid(); updateStats();
+  document.getElementById('dl-btn').disabled=false;
+  document.getElementById('print-btn').disabled=false;
+  document.getElementById('gen-btn').disabled=false;
+  document.getElementById('gen-info').textContent=count+' codes generated and saved to database.';
+  setSyncStatus('live','Live · '+count+' codes saved');
+}
+
+function renderQRGrid() {
+  var grid=document.getElementById('qr-grid'); grid.innerHTML='';
+  codes.forEach(function(c){
+    var div=document.createElement('div'); div.className='qr-item'; div.id='qi-'+c.code_id;
+    var qDiv=document.createElement('div');
+    new QRCode(qDiv,{text:c.code_id,width:112,height:112,colorDark:'#0d0b08',colorLight:'#f7f2e8',correctLevel:QRCode.CorrectLevel.M});
+    var lbl=document.createElement('div'); lbl.className='qr-lbl'; lbl.textContent='#'+c.num;
+    div.appendChild(qDiv); div.appendChild(lbl); grid.appendChild(div);
   });
-}
-function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
-
-function buildCard(doc, c, coupleName){
-  // A5 page: 148 x 210 mm — full page = one card
-  var W = 148, H = 210;
-  var margin = 8;
-  var x = margin, y = margin;
-  var cw = W - margin * 2;
-  var ch = H - margin * 2;
-
-  // Background
-  doc.setFillColor(250, 246, 239);
-  doc.roundedRect(x, y, cw, ch, 4, 4, 'F');
-
-  // Outer gold border
-  doc.setDrawColor(201, 168, 76);
-  doc.setLineWidth(0.7);
-  doc.roundedRect(x, y, cw, ch, 4, 4, 'S');
-
-  // Inner border
-  doc.setDrawColor(201, 168, 76);
-  doc.setLineWidth(0.2);
-  doc.roundedRect(x + 3, y + 3, cw - 6, ch - 6, 2.5, 2.5, 'S');
-
-  // Couple / Event name
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  doc.setTextColor(61, 46, 14);
-  doc.text(coupleName, W / 2, y + 18, { align: 'center' });
-
-  // Decorative line
-  doc.setFontSize(9);
-  doc.setTextColor(201, 168, 76);
-  doc.text('- - - - - - - - - -', W / 2, y + 26, { align: 'center' });
-
-  // QR code — large, centred
-  var qi       = document.getElementById('qi-' + c.id);
-  var qrCanvas = qi ? qi.querySelector('canvas') : null;
-  if(qrCanvas){
-    var qrData = qrCanvas.toDataURL('image/png');
-    var qrSize = 90;
-    var qrX    = (W - qrSize) / 2;
-    doc.addImage(qrData, 'PNG', qrX, y + 32, qrSize, qrSize);
-  }
-
-  // Guest number
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(61, 46, 14);
-  doc.text('Guest  #' + c.num, W / 2, y + 134, { align: 'center' });
-
-  // Unique code
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(7.5);
-  doc.setTextColor(160, 140, 100);
-  doc.text(c.id, W / 2, y + 143, { align: 'center' });
-
-  // Divider
-  doc.setFontSize(9);
-  doc.setTextColor(201, 168, 76);
-  doc.text('- - - - - - - - - -', W / 2, y + 152, { align: 'center' });
-
-  // Instruction
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(7.5);
-  doc.setTextColor(120, 96, 64);
-  doc.text('Please present this card at the entrance', W / 2, y + 162, { align: 'center' });
-
-  // Bottom ornament
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(201, 168, 76);
-  doc.text('*   *   *', W / 2, y + ch - 8, { align: 'center' });
+  document.getElementById('dl-btn').disabled=false;
+  document.getElementById('print-btn').disabled=false;
 }
 
-async function downloadPDF(){
+// ── PDF ───────────────────────────────────────────────
+function loadScript(src){ return new Promise(function(r,e){ var s=document.createElement('script'); s.src=src; s.onload=r; s.onerror=e; document.head.appendChild(s); }); }
+function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+
+function buildCard(doc,c,couple) {
+  var W=148,H=210,m=8,cw=W-m*2,ch=H-m*2;
+  doc.setFillColor(247,242,232); doc.roundedRect(m,m,cw,ch,4,4,'F');
+  doc.setDrawColor(200,169,110); doc.setLineWidth(.7); doc.roundedRect(m,m,cw,ch,4,4,'S');
+  doc.setLineWidth(.2); doc.roundedRect(m+3,m+3,cw-6,ch-6,2.5,2.5,'S');
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(61,46,14);
+  doc.text(couple,W/2,m+18,{align:'center'});
+  doc.setFontSize(9); doc.setTextColor(200,169,110); doc.text('- - - - - - - - - -',W/2,m+26,{align:'center'});
+  var qi=document.getElementById('qi-'+c.code_id); var cv=qi?qi.querySelector('canvas'):null;
+  if(cv) doc.addImage(cv.toDataURL('image/png'),'PNG',(W-90)/2,m+32,90,90);
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(61,46,14);
+  doc.text('Guest  #'+c.num,W/2,m+134,{align:'center'});
+  doc.setFont('courier','normal'); doc.setFontSize(7.5); doc.setTextColor(160,140,100);
+  doc.text(c.code_id,W/2,m+143,{align:'center'});
+  doc.setFontSize(9); doc.setTextColor(200,169,110); doc.text('- - - - - - - - - -',W/2,m+152,{align:'center'});
+  doc.setFont('helvetica','italic'); doc.setFontSize(7.5); doc.setTextColor(120,96,64);
+  doc.text('Please present this card at the entrance',W/2,m+162,{align:'center'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(200,169,110);
+  doc.text('*   *   *',W/2,m+ch-8,{align:'center'});
+}
+
+async function downloadPDF() {
   if(!codes.length) return;
-
-  // Load jsPDF and JSZip
-  if(!window.jspdf)  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-  if(!window.JSZip)  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
-
-  var jsPDF = window.jspdf.jsPDF;
-  var zip   = new JSZip();
-
-  var overlay = document.getElementById('progress-overlay');
-  var bar     = document.getElementById('prog-bar');
-  var txt     = document.getElementById('prog-txt');
+  if(!window.jspdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+  if(!window.JSZip) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+  var jsPDF=window.jspdf.jsPDF, zip=new JSZip();
+  var overlay=document.getElementById('progress-overlay'), fill=document.getElementById('prog-fill'), txt=document.getElementById('prog-txt');
   overlay.classList.add('show');
-
-  var coupleName  = document.getElementById('event-name').value.trim() || 'Wedding';
-  var folderName  = coupleName.replace(/[^a-z0-9]/gi, '_') + '_QR_Codes';
-  var folder      = zip.folder(folderName);
-
-  for(var i = 0; i < codes.length; i++){
-    var c = codes[i];
-
-    // One A5 PDF per guest
-    var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' });
-    buildCard(doc, c, coupleName);
-
-    // Get PDF as binary string and add to ZIP
-    var pdfBytes = doc.output('arraybuffer');
-    var filename = 'guest_' + String(c.num).padStart(4, '0') + '_' + c.id + '.pdf';
-    folder.file(filename, pdfBytes);
-
-    // Update progress
-    var pct = Math.round((i + 1) / codes.length * 100);
-    bar.style.width = pct + '%';
-    txt.textContent = pct + '%';
-    if(i % 10 === 0) await sleep(0); // yield to browser to keep UI alive
+  var couple=document.getElementById('event-name').value.trim()||'Wedding';
+  var folder=zip.folder(couple.replace(/[^a-z0-9]/gi,'_')+'_QR_Codes');
+  for(var i=0;i<codes.length;i++){
+    var c=codes[i]; var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a5'});
+    buildCard(doc,c,couple);
+    folder.file('guest_'+String(c.num).padStart(4,'0')+'_'+c.code_id+'.pdf',doc.output('arraybuffer'));
+    var pct=Math.round((i+1)/codes.length*100); fill.style.width=pct+'%'; txt.textContent=pct+'%';
+    if(i%10===0) await sleep(0);
   }
-
-  // Generate ZIP and trigger download
-  var zipBlob = await zip.generateAsync({ type: 'blob' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(zipBlob);
-  a.download = folderName + '.zip';
-  a.click();
-
+  var blob=await zip.generateAsync({type:'blob'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=couple.replace(/[^a-z0-9]/gi,'_')+'_QR.zip'; a.click();
   overlay.classList.remove('show');
 }
 
-// SCANNER
-var stream = null, scanning = false, lastCode = '', lastTime = 0;
+// ── SCANNER ───────────────────────────────────────────
+var stream=null,scanning=false,lastCode='',lastTime=0;
+var scanCanvas=document.createElement('canvas');
+var scanCtx=scanCanvas.getContext('2d',{willReadFrequently:true});
 
-async function startCamera(){
-  try{
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 640 } }
-    });
-    document.getElementById('scanner-video').srcObject = stream;
-    document.getElementById('start-btn').disabled = true;
-    document.getElementById('stop-btn').disabled  = false;
-    scanning = true;
-    scanFrame();
-  } catch(e){
-    alert('Camera error: ' + e.message + '\n\nUse manual input below instead.');
+async function startCamera() {
+  var constraints=[
+    {video:{facingMode:{exact:'environment'},width:{ideal:1280},height:{ideal:1280}}},
+    {video:{facingMode:'environment',width:{ideal:640},height:{ideal:640}}},
+    {video:true}
+  ];
+  stream=null;
+  for(var i=0;i<constraints.length;i++){ try{ stream=await navigator.mediaDevices.getUserMedia(constraints[i]); break; }catch(e){} }
+  if(!stream){ alert('Camera unavailable — use manual input.'); return; }
+  var video=document.getElementById('scanner-video');
+  video.srcObject=stream; await video.play();
+  document.getElementById('start-btn').disabled=true;
+  document.getElementById('stop-btn').disabled=false;
+  scanning=true; requestAnimationFrame(scanFrame);
+}
+
+function stopCamera() {
+  scanning=false;
+  if(stream){ stream.getTracks().forEach(function(t){ t.stop(); }); stream=null; }
+  document.getElementById('scanner-video').srcObject=null;
+  document.getElementById('start-btn').disabled=false;
+  document.getElementById('stop-btn').disabled=true;
+}
+
+function scanFrame() {
+  if(!scanning){ requestAnimationFrame(scanFrame); return; }
+  var video=document.getElementById('scanner-video');
+  if(!video.videoWidth||video.readyState<2){ requestAnimationFrame(scanFrame); return; }
+  var scale=Math.min(1,640/video.videoWidth);
+  var w=Math.round(video.videoWidth*scale), h=Math.round(video.videoHeight*scale);
+  if(scanCanvas.width!==w||scanCanvas.height!==h){ scanCanvas.width=w; scanCanvas.height=h; }
+  scanCtx.drawImage(video,0,0,w,h);
+  if(window.BarcodeDetector){
+    new BarcodeDetector({formats:['qr_code']}).detect(scanCanvas).then(function(r){ if(r.length) processCode(r[0].rawValue); }).catch(function(){});
   }
-}
-
-function stopCamera(){
-  scanning = false;
-  if(stream){ stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
-  document.getElementById('scanner-video').srcObject = null;
-  document.getElementById('start-btn').disabled = false;
-  document.getElementById('stop-btn').disabled  = true;
-}
-
-function scanFrame(){
-  if(!scanning) return;
-  var video = document.getElementById('scanner-video');
-  if(video.readyState === video.HAVE_ENOUGH_DATA){
-    var cv = document.createElement('canvas');
-    cv.width = video.videoWidth; cv.height = video.videoHeight;
-    cv.getContext('2d').drawImage(video, 0, 0);
-    try{
-      if(window.BarcodeDetector){
-        new BarcodeDetector({ formats: ['qr_code'] }).detect(cv).then(function(b){
-          if(b.length) processCode(b[0].rawValue);
-        });
-      } else {
-        if(!window.jsQR){
-          if(!window._jsqrLoading){
-            window._jsqrLoading = true;
-            loadScript('https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js');
-          }
-        } else {
-          var id   = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height);
-          var code = jsQR(id.data, id.width, id.height);
-          if(code) processCode(code.data);
-        }
-      }
-    } catch(e){}
+  if(window.jsQR){
+    try{ var id=scanCtx.getImageData(0,0,w,h); var r=jsQR(id.data,w,h,{inversionAttempts:'dontInvert'}); if(r) processCode(r.data); }catch(e){}
   }
   requestAnimationFrame(scanFrame);
 }
 
-function processCode(raw){
-  var now = Date.now();
-  if(raw === lastCode && now - lastTime < 3000) return;
-  lastCode = raw; lastTime = now;
-
-  var code = codes.find(function(c){ return c.id === raw; });
-  if(!code){
-    showResult('error', 'X', 'INVALID CODE', 'This QR code is not in the system');
-    addLog(raw, false, 'Invalid code');
-  } else if(usedSet.has(raw)){
-    showResult('error', '!', 'ALREADY USED', 'Guest #' + code.num + ' has already entered');
-    addLog(raw, false, 'Guest #' + code.num + ' - already scanned');
-  } else {
-    usedSet.add(raw); save(); updateStats();
-    showResult('success', 'OK', 'WELCOME!', 'Guest #' + code.num + ' - Enjoy the celebration!');
-    addLog(raw, true, 'Guest #' + code.num + ' admitted');
-  }
+async function processCode(raw) {
+  var now=Date.now();
+  if(raw===lastCode&&now-lastTime<3000) return;
+  lastCode=raw; lastTime=now;
+  var code=codes.find(function(c){ return c.code_id===raw; });
+  if(!code){ showResult('fail','✕','INVALID CODE','Not in this session'); addLog(raw,false,'Invalid code'); return; }
+  if(usedSet.has(raw)){ showResult('fail','!','ALREADY USED','Guest #'+code.num+' already entered'); addLog(raw,false,'Guest #'+code.num+' – already scanned'); return; }
+  var res=await sb.from('codes').update({used_at:new Date().toISOString()}).eq('code_id',raw).eq('session_id',SESSION_ID);
+  if(res.error){ showResult('fail','!','DB ERROR',res.error.message); return; }
+  usedSet.add(raw);
+  var idx=codes.findIndex(function(c){ return c.code_id===raw; });
+  if(idx!==-1) codes[idx].used_at=new Date().toISOString();
+  updateStats();
+  showResult('ok','✓','WELCOME!','Guest #'+code.num+' – Enjoy the celebration!');
+  addLog(raw,true,'Guest #'+code.num+' admitted');
 }
 
-function showResult(type, icon, title, sub){
-  var box = document.getElementById('result-box');
-  box.className = 'result-box ' + type;
-  box.innerHTML = '<div class="result-icon">' + icon + '</div>'
-                + '<div class="result-title">' + title + '</div>'
-                + '<div class="result-sub">' + sub + '</div>';
-  setTimeout(function(){
-    box.className = 'result-box idle';
-    box.innerHTML = '<div class="result-icon">&#9672;</div>'
-                  + '<div class="result-title">READY TO SCAN</div>'
-                  + '<div class="result-sub">Point camera at a guest QR code</div>';
-  }, 3000);
+function showResult(type,icon,title,sub) {
+  var box=document.getElementById('result-box');
+  box.className='result-box '+type;
+  box.innerHTML='<div class="result-icon">'+icon+'</div><div class="result-title">'+title+'</div><div class="result-sub">'+sub+'</div>';
+  setTimeout(function(){ box.className='result-box'; box.innerHTML='<div class="result-icon">&#9671;</div><div class="result-title">READY</div><div class="result-sub">Point camera at a guest QR code</div>'; },3000);
 }
 
-function addLog(code, ok, msg){
-  var time = new Date().toLocaleTimeString();
-  scanLog.unshift({ code: code, ok: ok, msg: msg, time: time }); save();
-  var list = document.getElementById('log-list');
-  var item = document.createElement('div'); item.className = 'log-item';
-  item.innerHTML = '<span class="log-dot ' + (ok ? 'ok' : 'fail') + '"></span>'
-                 + '<span>' + msg + '</span>'
-                 + '<span class="log-time">' + time + '</span>';
-  if(list.children[0] && list.children[0].style.color) list.innerHTML = '';
+function addLog(code,ok,msg) {
+  var time=new Date().toLocaleTimeString(); scanLog.unshift({code,ok,msg,time});
+  var list=document.getElementById('log-list');
+  var item=document.createElement('div'); item.className='log-item';
+  item.innerHTML='<span class="log-dot '+(ok?'ok':'fail')+'"></span><span>'+msg+'</span><span class="log-time">'+time+'</span>';
+  if(list.querySelector('.log-empty')) list.innerHTML='';
   list.prepend(item);
+  if(list.children.length>30) list.removeChild(list.lastChild);
 }
 
-function manualCheck(){
-  var val = document.getElementById('manual-code').value.trim().toUpperCase();
-  if(!val) return;
-  processCode(val);
-  document.getElementById('manual-code').value = '';
+function manualCheck() {
+  var val=document.getElementById('manual-code').value.trim().toUpperCase();
+  if(!val) return; processCode(val); document.getElementById('manual-code').value='';
 }
 
-function updateStats(){
-  document.getElementById('stat-total').textContent     = codes.length;
-  document.getElementById('stat-scanned').textContent   = usedSet.size;
-  document.getElementById('stat-remaining').textContent = codes.length - usedSet.size;
+function updateStats() {
+  document.getElementById('stat-total').textContent=codes.length;
+  document.getElementById('stat-scanned').textContent=usedSet.size;
+  document.getElementById('stat-remaining').textContent=codes.length-usedSet.size;
 }
 
-// MANAGE
-function renderManage(filter){
-  var list = document.getElementById('manage-list');
-  if(!codes.length){
-    list.innerHTML = '<div class="empty-state"><div class="ei">&#9672;</div><div>No codes generated yet.</div></div>';
-    return;
-  }
-  var filtered = codes;
-  if(filter === 'used')   filtered = codes.filter(function(c){ return  usedSet.has(c.id); });
-  if(filter === 'unused') filtered = codes.filter(function(c){ return !usedSet.has(c.id); });
-  document.getElementById('manage-count').textContent = 'Showing ' + filtered.length + ' of ' + codes.length;
-  list.innerHTML = filtered.map(function(c){
-    var used = usedSet.has(c.id);
-    return '<div class="manage-row">'
-      + '<span style="font-family:\'Cinzel\',serif;font-size:.72rem;color:var(--gold);width:44px;">#' + c.num + '</span>'
-      + '<span style="font-family:monospace;font-size:.78rem;color:#666;">' + c.id + '</span>'
-      + '<span style="font-size:.75rem;color:#aaa;">' + (c.name || '') + '</span>'
-      + '<span class="badge ' + (used ? 'badge-used' : 'badge-unused') + '">' + (used ? 'USED' : 'UNUSED') + '</span>'
-      + (used ? '<button class="btn btn-outline" style="padding:4px 10px;font-size:.6rem;" onclick="resetOne(\'' + c.id + '\')">Reset</button>' : '')
-      + '</div>';
+// ── MANAGE ────────────────────────────────────────────
+function renderManage(filter) {
+  var list=document.getElementById('manage-list');
+  if(!codes.length){ list.innerHTML='<div class="empty-state"><div class="empty-icon">&#9671;</div><div>No codes generated yet</div></div>'; return; }
+  var shown=codes;
+  if(filter==='used')   shown=codes.filter(function(c){ return  usedSet.has(c.code_id); });
+  if(filter==='unused') shown=codes.filter(function(c){ return !usedSet.has(c.code_id); });
+  document.getElementById('manage-count').textContent='Showing '+shown.length+' of '+codes.length;
+  list.innerHTML=shown.map(function(c){
+    var u=usedSet.has(c.code_id);
+    return '<div class="manage-item">'
+      +'<span class="manage-num">#'+c.num+'</span>'
+      +'<span class="manage-code">'+c.code_id+'</span>'
+      +'<span class="badge '+(u?'badge-used':'badge-unused')+'">'+(u?'USED':'UNUSED')+'</span>'
+      +(u?'<button class="btn btn-outline btn-sm" onclick="resetOne(\''+c.code_id+'\')">Reset</button>':'')
+      +'</div>';
   }).join('');
 }
 
-function resetOne(id){ usedSet.delete(id); save(); updateStats(); renderManage('all'); }
-
-function resetAll(){
-  if(!confirm('Reset ALL used codes?')) return;
-  usedSet = new Set(); scanLog = []; save(); updateStats(); renderManage('all');
-  document.getElementById('log-list').innerHTML = '<div class="log-item" style="color:#aaa;justify-content:center;">No scans yet</div>';
+async function resetOne(codeId) {
+  await sb.from('codes').update({used_at:null}).eq('code_id',codeId).eq('session_id',SESSION_ID);
+  usedSet.delete(codeId);
+  var idx=codes.findIndex(function(c){ return c.code_id===codeId; });
+  if(idx!==-1) codes[idx].used_at=null;
+  updateStats(); renderManage('all');
 }
 
-// INIT
-updateStats();
-if(scanLog.length){
-  var list = document.getElementById('log-list'); list.innerHTML = '';
-  scanLog.slice(0, 20).forEach(function(l){
-    var item = document.createElement('div'); item.className = 'log-item';
-    item.innerHTML = '<span class="log-dot ' + (l.ok ? 'ok' : 'fail') + '"></span>'
-                   + '<span>' + l.msg + '</span>'
-                   + '<span class="log-time">' + l.time + '</span>';
-    list.appendChild(item);
-  });
+async function resetAllUsed() {
+  if(!confirm('Reset ALL used codes in this session?')) return;
+  await sb.from('codes').update({used_at:null}).eq('session_id',SESSION_ID);
+  usedSet=new Set(); scanLog=[]; codes.forEach(function(c){ c.used_at=null; });
+  updateStats(); renderManage('all');
+  document.getElementById('log-list').innerHTML='<div class="log-empty">No scans yet</div>';
 }
+
+// ── SYNC STATUS ───────────────────────────────────────
+function setSyncStatus(state,text){ document.getElementById('sync-dot').className='sync-dot '+state; document.getElementById('sync-text').textContent=text; }
+
+// ── HASH ──────────────────────────────────────────────
+function hash(str){ var h=0; for(var i=0;i<str.length;i++) h=Math.imul(31,h)+str.charCodeAt(i)|0; return 'h'+Math.abs(h).toString(16); }
+
+// ── AUTO-RESUME ───────────────────────────────────────
+(async function init(){
+  if(!CONFIGURED) return;
+  var saved=localStorage.getItem('wqr_session');
+  if(!saved) return;
+  try{
+    var s=JSON.parse(saved);
+    var res=await sb.from('sessions').select('id,name').eq('id',s.id).maybeSingle();
+    if(res.data) enterApp(res.data.id,res.data.name);
+    else localStorage.removeItem('wqr_session');
+  }catch(e){ localStorage.removeItem('wqr_session'); }
+})();
 </script>
 
-<style>
-@media print {
-  nav,.btn,#manual-input,#progress-overlay{display:none!important}
-  .page{display:block!important;padding:0}
-  #page-scan,#page-manage{display:none!important}
-  #qr-grid{max-height:none;grid-template-columns:repeat(4,1fr)}
-}
-</style>
+<!--
+╔══════════════════════════════════════════════════════╗
+║  SUPABASE SQL SETUP — run this once in SQL Editor    ║
+║  supabase.com → your project → SQL Editor → New Query║
+╚══════════════════════════════════════════════════════╝
+
+-- 1. Sessions table
+create table if not exists sessions (
+  id            uuid primary key default gen_random_uuid(),
+  name          text not null,
+  password_hash text not null,
+  created_at    timestamptz default now()
+);
+
+-- 2. Codes table (session_id links to sessions)
+create table if not exists codes (
+  id         bigserial primary key,
+  session_id uuid not null references sessions(id) on delete cascade,
+  code_id    text not null unique,
+  num        int  not null,
+  name       text,
+  used_at    timestamptz default null,
+  created_at timestamptz default now()
+);
+
+-- 3. Fast lookup index
+create index if not exists codes_session_idx on codes(session_id);
+
+-- 4. Row Level Security (required by Supabase)
+alter table sessions enable row level security;
+alter table codes     enable row level security;
+
+-- 5. Allow anon access (password_hash protects sessions)
+create policy "public_sessions" on sessions for all using (true) with check (true);
+create policy "public_codes"    on codes     for all using (true) with check (true);
+
+-- 6. Enable realtime
+alter publication supabase_realtime add table codes;
+
+-->
 </body>
 </html>
