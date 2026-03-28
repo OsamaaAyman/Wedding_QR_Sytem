@@ -2,261 +2,199 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Wedding QR · Entrance Manager</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
-:root {
-  --gold:        #c8a96e;
-  --gold-dim:    #a8894e;
-  --gold-glow:   rgba(200,169,110,0.15);
-  --gold-border: rgba(200,169,110,0.25);
-  --ink:         #0d0b08;
-  --ink-mid:     #1e1a12;
-  --ink-soft:    #2e2818;
-  --paper:       #f7f2e8;
-  --text:        #3a3020;
-  --text-muted:  #7a6a4a;
-  --ok:          #3a7a52;
-  --ok-bg:       #e8f5ee;
-  --fail:        #8a2020;
-  --fail-bg:     #f5e8e8;
-  --radius:      6px;
-  --nav-h:       56px;
-  --bottom-h:    62px;
+:root{
+  --gold:#c8a96e;--gold-dim:#a8894e;--gold-glow:rgba(200,169,110,.15);
+  --gold-border:rgba(200,169,110,.25);--ink:#0d0b08;--ink-mid:#1e1a12;
+  --ink-soft:#2e2818;--paper:#f7f2e8;--text-muted:#7a6a4a;
+  --ok:#3a7a52;--ok-bg:#e8f5ee;--fail:#8a2020;--fail-bg:#f5e8e8;--r:6px;
+  --nav:56px;--bot:64px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{-webkit-text-size-adjust:100%;}
-body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--paper);min-height:100vh;overflow-x:hidden;}
+html{-webkit-text-size-adjust:100%;height:100%;}
+body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--paper);min-height:100%;overflow-x:hidden;}
 
-/* ── LOGIN ───────────────────────────────── */
+/* ── LOGIN ─────────────────────────────── */
 #login-screen{position:fixed;inset:0;background:var(--ink);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;}
-.login-wrap{width:100%;max-width:400px;}
-.login-crest{text-align:center;margin-bottom:32px;}
-.login-crest-line{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:6px;}
-.login-crest-line::before,.login-crest-line::after{content:'';flex:1;max-width:60px;height:1px;background:var(--gold-border);}
-.crest-icon{font-size:1.6rem;}
-.login-title{font-family:'Cinzel',serif;font-size:1.6rem;letter-spacing:5px;color:var(--gold);font-weight:400;}
-.login-sub{font-size:.82rem;color:var(--text-muted);letter-spacing:2px;margin-top:4px;}
-.login-card{background:var(--ink-mid);border:1px solid var(--gold-border);border-radius:var(--radius);overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.6);}
+.lw{width:100%;max-width:400px;}
+.lcrest{text-align:center;margin-bottom:28px;}
+.lcrest-line{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:6px;}
+.lcrest-line::before,.lcrest-line::after{content:'';flex:1;max-width:50px;height:1px;background:var(--gold-border);}
+.ltitle{font-family:'Cinzel',serif;font-size:1.5rem;letter-spacing:5px;color:var(--gold);}
+.lsub{font-size:.78rem;color:var(--text-muted);letter-spacing:2px;margin-top:4px;}
+.lcard{background:var(--ink-mid);border:1px solid var(--gold-border);border-radius:var(--r);overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6);}
 .tab-row{display:flex;border-bottom:1px solid var(--gold-border);}
-.tab-btn{flex:1;padding:13px 8px;background:none;border:none;cursor:pointer;font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:2px;color:var(--text-muted);transition:all .2s;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.tab-btn{flex:1;padding:13px 8px;background:none;border:none;cursor:pointer;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:2px;color:var(--text-muted);transition:all .2s;border-bottom:2px solid transparent;margin-bottom:-1px;}
 .tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
-.login-body{padding:28px 24px 24px;}
-.field{margin-bottom:18px;}
-.field label{display:block;font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:2px;color:var(--gold-dim);margin-bottom:7px;}
-.field input{width:100%;padding:11px 14px;background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:4px;color:var(--paper);font-family:'EB Garamond',serif;font-size:1rem;outline:none;transition:border-color .2s;}
+.lbody{padding:24px 20px 20px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:2px;color:var(--gold-dim);margin-bottom:6px;}
+.field input{width:100%;padding:11px 13px;background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:4px;color:var(--paper);font-family:'EB Garamond',serif;font-size:1rem;outline:none;transition:border-color .2s;}
 .field input:focus{border-color:var(--gold);}
 .field input::placeholder{color:var(--text-muted);}
-.hint-box{background:rgba(200,169,110,.07);border:1px solid var(--gold-border);border-radius:4px;padding:12px 14px;font-size:.8rem;color:var(--text-muted);line-height:1.7;margin-bottom:18px;}
-.alert-box{border-radius:4px;padding:10px 14px;font-size:.82rem;margin-bottom:14px;display:none;}
-.alert-error{background:var(--fail-bg);color:var(--fail);border:1px solid #d09090;}
-.alert-info{background:var(--ok-bg);color:var(--ok);border:1px solid #90c0a0;}
+.hint{background:rgba(200,169,110,.07);border:1px solid var(--gold-border);border-radius:4px;padding:11px 13px;font-size:.78rem;color:var(--text-muted);line-height:1.7;margin-bottom:16px;}
+.aerr,.aok{border-radius:4px;padding:9px 13px;font-size:.8rem;margin-bottom:12px;display:none;}
+.aerr{background:var(--fail-bg);color:var(--fail);border:1px solid #d09090;}
+.aok{background:var(--ok-bg);color:var(--ok);border:1px solid #90c0a0;}
 
-/* ── BUTTONS ─────────────────────────────── */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border:none;border-radius:4px;cursor:pointer;font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:2px;transition:all .2s;white-space:nowrap;text-transform:uppercase;}
+/* ── BUTTONS ───────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border:none;border-radius:4px;cursor:pointer;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:2px;transition:all .2s;white-space:nowrap;text-transform:uppercase;}
 .btn-full{width:100%;}
-.btn-primary{background:var(--gold);color:var(--ink);font-weight:600;}
-.btn-primary:hover{background:#e0c080;}
-.btn-primary:disabled{opacity:.5;cursor:not-allowed;}
-.btn-outline{background:transparent;border:1px solid var(--gold-border);color:var(--gold);}
-.btn-outline:hover{border-color:var(--gold);background:var(--gold-glow);}
-.btn-outline:disabled{opacity:.4;cursor:not-allowed;}
-.btn-danger{background:var(--fail);color:#fff;}
-.btn-danger:hover{background:#a02828;}
-.btn-sm{padding:6px 12px;font-size:.62rem;}
+.btn-gold{background:var(--gold);color:var(--ink);font-weight:600;}
+.btn-gold:hover{background:#dbb97e;}
+.btn-gold:disabled{opacity:.5;cursor:not-allowed;}
+.btn-out{background:transparent;border:1px solid var(--gold-border);color:var(--gold);}
+.btn-out:hover{border-color:var(--gold);background:var(--gold-glow);}
+.btn-out:disabled{opacity:.4;cursor:not-allowed;}
+.btn-red{background:var(--fail);color:#fff;}
+.btn-red:hover{background:#a02828;}
+.btn-sm{padding:5px 11px;font-size:.6rem;}
 
-/* ── APP SHELL ───────────────────────────── */
+/* ── APP ───────────────────────────────── */
 #app{display:none;flex-direction:column;min-height:100vh;}
 
-/* ── TOPBAR (desktop) ────────────────────── */
-.topbar{
-  background:var(--ink-mid);
-  border-bottom:1px solid var(--gold-border);
-  display:flex;align-items:center;
-  padding:0 16px;
-  position:sticky;top:0;z-index:50;
-  height:var(--nav-h);
-}
-.topbar-brand{
-  font-family:'Cinzel',serif;color:var(--gold);
-  font-size:.78rem;letter-spacing:3px;
-  padding-right:16px;
-  border-right:1px solid var(--gold-border);
-  white-space:nowrap;display:flex;align-items:center;gap:8px;
-  flex-shrink:0;
-}
-.session-pill{
-  background:rgba(200,169,110,.12);border:1px solid var(--gold-border);
-  color:var(--gold-dim);font-size:.6rem;letter-spacing:1px;
-  padding:3px 9px;border-radius:20px;max-width:120px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  font-family:'Cinzel',serif;
-}
-
+/* ── TOPBAR ────────────────────────────── */
+.topbar{background:var(--ink-mid);border-bottom:1px solid var(--gold-border);display:flex;align-items:center;padding:0 14px;height:var(--nav);position:sticky;top:0;z-index:40;}
+.topbar-brand{font-family:'Cinzel',serif;color:var(--gold);font-size:.75rem;letter-spacing:3px;display:flex;align-items:center;gap:8px;flex:1;}
+.spill{background:rgba(200,169,110,.12);border:1px solid var(--gold-border);color:var(--gold-dim);font-size:.58rem;letter-spacing:1px;padding:3px 8px;border-radius:20px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Cinzel',serif;}
 /* Desktop tabs — hidden on mobile */
-.topbar-tabs{
-  display:flex;flex:1;padding-left:8px;
-  overflow:hidden; /* no scroll on desktop */
-}
-.topbar-tab{
-  padding:0 14px;height:var(--nav-h);
-  background:none;border:none;cursor:pointer;
-  font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:1.5px;
-  color:var(--text-muted);transition:all .2s;
-  border-bottom:2px solid transparent;
-  white-space:nowrap;display:flex;align-items:center;
-}
-.topbar-tab:hover{color:var(--paper);}
-.topbar-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
-.topbar-end{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.dtabs{display:flex;}
+.dtab{padding:0 14px;height:var(--nav);background:none;border:none;cursor:pointer;font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:1.5px;color:var(--text-muted);transition:all .2s;border-bottom:2px solid transparent;white-space:nowrap;display:flex;align-items:center;}
+.dtab:hover{color:var(--paper);}
+.dtab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.tbend{display:flex;align-items:center;gap:8px;}
+@media(max-width:600px){.dtabs{display:none;}}
 
-/* ── BOTTOM NAV (mobile only) ────────────── */
-.bottom-nav{
-  display:none; /* shown via media query */
-  position:fixed;bottom:0;left:0;right:0;
-  background:var(--ink-mid);
-  border-top:1px solid var(--gold-border);
-  height:var(--bottom-h);
-  z-index:50;
-  /* safe area for iPhone home bar */
-  padding-bottom:env(safe-area-inset-bottom, 0px);
-}
-.bottom-nav-inner{
-  display:grid;grid-template-columns:repeat(3,1fr);
-  height:100%;
-}
-.bnav-btn{
-  background:none;border:none;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:4px;padding:8px 4px;
-  font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:1.5px;
-  color:var(--text-muted);transition:all .2s;
-  border-top:2px solid transparent;
-}
+/* ── BOTTOM NAV ────────────────────────── */
+.bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--ink-mid);border-top:1px solid var(--gold-border);height:var(--bot);padding-bottom:env(safe-area-inset-bottom,0);z-index:40;}
+.bnav-inner{display:grid;grid-template-columns:repeat(3,1fr);height:100%;}
+.bnav-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 4px;color:var(--text-muted);transition:all .2s;border-top:2px solid transparent;position:relative;}
 .bnav-btn.active{color:var(--gold);border-top-color:var(--gold);}
-.bnav-icon{font-size:1.15rem;line-height:1;}
+/* SVG icons for bottom nav */
+.bnav-icon{width:22px;height:22px;flex-shrink:0;}
+.bnav-label{font-family:'Cinzel',serif;font-size:.52rem;letter-spacing:1.5px;}
+@media(max-width:600px){.bnav{display:block;}.main{padding-bottom:calc(var(--bot) + env(safe-area-inset-bottom,0) + 10px)!important;}}
 
-@media(max-width:640px){
-  .topbar-tabs{display:none;}          /* hide desktop tabs */
-  .bottom-nav{display:block;}           /* show bottom nav */
-  /* push page content up above bottom bar */
-  .main{padding-bottom:calc(var(--bottom-h) + env(safe-area-inset-bottom,0px) + 12px)!important;}
-  .topbar-brand{border-right:none;}
-}
+/* ── SYNCBAR ───────────────────────────── */
+.syncbar{background:var(--ink-soft);border-bottom:1px solid rgba(200,169,110,.1);padding:5px 16px;display:flex;align-items:center;gap:7px;font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:1.5px;color:var(--text-muted);}
+.sdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.sdot.live{background:var(--ok);box-shadow:0 0 5px var(--ok);animation:pd 2s infinite;}
+.sdot.syncing{background:var(--gold);animation:pd .5s infinite;}
+.sdot.off{background:#555;}
+.sdot.err{background:var(--fail);}
+@keyframes pd{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* ── SYNC BAR ────────────────────────────── */
-.syncbar{background:var(--ink-soft);border-bottom:1px solid rgba(200,169,110,.1);padding:6px 18px;display:flex;align-items:center;gap:8px;font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:1.5px;color:var(--text-muted);}
-.sync-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
-.sync-dot.live{background:var(--ok);box-shadow:0 0 6px var(--ok);animation:pdot 2s infinite;}
-.sync-dot.syncing{background:var(--gold);animation:pdot .5s infinite;}
-.sync-dot.offline{background:#666;}
-.sync-dot.error{background:var(--fail);}
-@keyframes pdot{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* ── MAIN ────────────────────────────────── */
-.main{flex:1;padding:24px 16px;max-width:960px;margin:0 auto;width:100%;}
-.page{display:none;}
-.page.active{display:block;}
-.page-head{text-align:center;margin-bottom:28px;}
-.page-head .ornament{color:var(--gold-dim);letter-spacing:8px;font-size:.85rem;}
-.page-head h1{font-family:'Cinzel',serif;font-weight:400;font-size:clamp(1.3rem,4vw,2rem);color:var(--paper);letter-spacing:4px;margin:8px 0 6px;}
-.page-head p{color:var(--text-muted);font-size:.88rem;letter-spacing:1px;}
-.panel{background:var(--ink-mid);border:1px solid var(--gold-border);border-radius:var(--radius);padding:20px;margin-bottom:18px;}
-.divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--gold-dim);font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:3px;}
+/* ── MAIN ──────────────────────────────── */
+.main{flex:1;padding:22px 14px;max-width:960px;margin:0 auto;width:100%;}
+.page{display:none;}.page.active{display:block;}
+.ph{text-align:center;margin-bottom:26px;}
+.ph .orn{color:var(--gold-dim);letter-spacing:8px;font-size:.8rem;}
+.ph h1{font-family:'Cinzel',serif;font-weight:400;font-size:clamp(1.3rem,4vw,1.9rem);color:var(--paper);letter-spacing:4px;margin:7px 0 5px;}
+.ph p{color:var(--text-muted);font-size:.85rem;letter-spacing:1px;}
+.panel{background:var(--ink-mid);border:1px solid var(--gold-border);border-radius:var(--r);padding:18px;margin-bottom:16px;}
+.divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--gold-dim);font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:3px;}
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--gold-border);}
-.form-row{display:flex;gap:14px;flex-wrap:wrap;}
-.form-row>*{flex:1;min-width:160px;}
-.form-field{margin-bottom:14px;}
-.form-field label{display:block;font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:2px;color:var(--gold-dim);margin-bottom:7px;}
-.form-field input{width:100%;padding:10px 13px;background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:4px;color:var(--paper);font-family:'EB Garamond',serif;font-size:1rem;outline:none;transition:border-color .2s;}
-.form-field input:focus{border-color:var(--gold);}
-.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-.info-strip{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.15);border-radius:4px;padding:11px 14px;font-size:.8rem;color:var(--text-muted);line-height:1.7;margin-top:14px;}
+.frow{display:flex;gap:12px;flex-wrap:wrap;}.frow>*{flex:1;min-width:150px;}
+.ff{margin-bottom:12px;}
+.ff label{display:block;font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:2px;color:var(--gold-dim);margin-bottom:6px;}
+.ff input{width:100%;padding:9px 12px;background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:4px;color:var(--paper);font-family:'EB Garamond',serif;font-size:1rem;outline:none;transition:border-color .2s;}
+.ff input:focus{border-color:var(--gold);}
+.brow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.istrip{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.15);border-radius:4px;padding:10px 13px;font-size:.78rem;color:var(--text-muted);line-height:1.7;margin-top:12px;}
 
-/* ── STATS ───────────────────────────────── */
-.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0;}
-.stat{background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:var(--radius);padding:16px 8px;text-align:center;}
-.stat-num{display:block;font-family:'Cinzel',serif;font-size:clamp(1.4rem,5vw,2rem);color:var(--gold);}
-.stat-lbl{font-size:.6rem;letter-spacing:2px;color:var(--text-muted);margin-top:4px;}
+/* ── STATS ─────────────────────────────── */
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0;}
+.scard{background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:var(--r);padding:14px 6px;text-align:center;}
+.snum{display:block;font-family:'Cinzel',serif;font-size:clamp(1.4rem,5vw,2rem);color:var(--gold);}
+.slbl{font-size:.58rem;letter-spacing:2px;color:var(--text-muted);margin-top:3px;}
 
-/* ── QR GRID ─────────────────────────────── */
-#qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;max-height:440px;overflow-y:auto;padding:2px;}
-.qr-item{background:var(--paper);border-radius:4px;padding:10px 8px;text-align:center;border:1px solid var(--gold-border);}
-.qr-item canvas,.qr-item img{width:108px!important;height:108px!important;max-width:100%!important;}
-.qr-lbl{font-size:.6rem;color:var(--text-muted);margin-top:5px;font-family:'Cinzel',serif;letter-spacing:1px;}
+/* ── QR GRID ───────────────────────────── */
+#qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;max-height:420px;overflow-y:auto;padding:2px;}
+.qi{background:var(--paper);border-radius:4px;padding:8px 6px;text-align:center;border:1px solid var(--gold-border);}
+.qi canvas,.qi img{width:104px!important;height:104px!important;max-width:100%!important;}
+.qlbl{font-size:.58rem;color:var(--text-muted);margin-top:4px;font-family:'Cinzel',serif;letter-spacing:1px;}
 
-/* ── SCANNER ─────────────────────────────── */
-.scanner-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-@media(max-width:640px){.scanner-layout{grid-template-columns:1fr;}}
-#video-wrap{position:relative;background:#000;border-radius:var(--radius);overflow:hidden;aspect-ratio:1;border:2px solid var(--gold-border);}
-#scanner-video{width:100%;height:100%;object-fit:cover;display:block;}
-.scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
-.scan-frame{width:58%;aspect-ratio:1;border:2px solid var(--gold);border-radius:4px;position:relative;animation:fpulse 2s ease-in-out infinite;}
-@keyframes fpulse{0%,100%{opacity:1}50%{opacity:.5}}
-.scan-frame::before,.scan-frame::after,.scan-frame>span::before,.scan-frame>span::after{content:'';position:absolute;width:16px;height:16px;border-color:var(--gold);border-style:solid;}
-.scan-frame::before{top:-2px;left:-2px;border-width:3px 0 0 3px}
-.scan-frame::after{top:-2px;right:-2px;border-width:3px 3px 0 0}
-.scan-frame>span::before{bottom:-2px;left:-2px;border-width:0 0 3px 3px}
-.scan-frame>span::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0}
-.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:sweep 2s linear infinite;}
-@keyframes sweep{0%{top:5%}100%{top:95%}}
-.result-box{border-radius:var(--radius);padding:24px 16px;text-align:center;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px solid var(--gold-border);background:var(--ink-soft);transition:all .25s;}
+/* ── SCANNER ───────────────────────────── */
+/* The entire scanner is a single big tap target on mobile */
+.scan-hero{
+  position:relative;
+  background:var(--ink-soft);
+  border:2px dashed var(--gold-border);
+  border-radius:12px;
+  padding:36px 20px;
+  text-align:center;
+  cursor:pointer;
+  transition:border-color .2s, background .2s;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+}
+.scan-hero:active{background:rgba(200,169,110,.08);border-color:var(--gold);}
+.scan-hero-icon{margin:0 auto 16px;}
+.scan-hero-title{font-family:'Cinzel',serif;font-size:1.1rem;letter-spacing:3px;color:var(--gold);margin-bottom:6px;}
+.scan-hero-sub{font-size:.85rem;color:var(--text-muted);line-height:1.6;}
+/* Hidden file input sits over the whole hero */
+#camera-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0;}
+
+/* feedback flash after scan */
+.scan-hero.scanning{border-color:var(--gold);background:rgba(200,169,110,.06);}
+
+.result-box{border-radius:var(--r);padding:22px 14px;text-align:center;min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;border:2px solid var(--gold-border);background:var(--ink-soft);transition:all .25s;margin-top:14px;}
 .result-box.ok{background:var(--ok-bg);border-color:var(--ok);animation:fok .3s;}
 .result-box.fail{background:var(--fail-bg);border-color:var(--fail);animation:ffail .3s;}
 @keyframes fok{from{background:#b0f0cc}to{background:var(--ok-bg)}}
 @keyframes ffail{from{background:#f0b0b0}to{background:var(--fail-bg)}}
-.result-icon{font-size:2.2rem;}
-.result-title{font-family:'Cinzel',serif;font-size:1rem;letter-spacing:2px;color:var(--paper);}
-.result-box.ok .result-title{color:var(--ok);}
-.result-box.fail .result-title{color:var(--fail);}
-.result-sub{font-size:.8rem;color:var(--text-muted);}
-.log-list{max-height:200px;overflow-y:auto;border:1px solid var(--gold-border);border-radius:4px;background:var(--ink-soft);}
-.log-item{display:flex;align-items:center;gap:10px;padding:9px 13px;font-size:.8rem;border-bottom:1px solid rgba(200,169,110,.1);}
-.log-item:last-child{border-bottom:none;}
-.log-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-.log-dot.ok{background:var(--ok);}
-.log-dot.fail{background:var(--fail);}
-.log-time{color:var(--text-muted);font-size:.68rem;margin-left:auto;}
-.log-empty{padding:20px;text-align:center;color:var(--text-muted);font-size:.82rem;}
-.manual-row{display:flex;gap:8px;margin-top:12px;}
-.manual-row input{flex:1;padding:10px 13px;background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:4px;color:var(--paper);font-family:'EB Garamond',serif;font-size:1rem;outline:none;}
+.ri{font-size:2rem;}
+.rt{font-family:'Cinzel',serif;font-size:.95rem;letter-spacing:2px;color:var(--paper);}
+.result-box.ok .rt{color:var(--ok);}
+.result-box.fail .rt{color:var(--fail);}
+.rs{font-size:.8rem;color:var(--text-muted);}
+
+.manual-row{display:flex;gap:8px;margin-top:14px;}
+.manual-row input{flex:1;padding:10px 12px;background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:4px;color:var(--paper);font-family:'EB Garamond',serif;font-size:1rem;outline:none;}
 .manual-row input:focus{border-color:var(--gold);}
 
-/* iOS camera note */
-.ios-note{background:rgba(200,169,110,.08);border:1px solid var(--gold-border);border-radius:4px;padding:10px 13px;font-size:.78rem;color:var(--text-muted);line-height:1.6;margin-top:10px;display:none;}
+.log-wrap{margin-top:18px;}
+.log-lbl{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:2px;color:var(--gold-dim);margin-bottom:7px;}
+.log-list{max-height:180px;overflow-y:auto;border:1px solid var(--gold-border);border-radius:4px;background:var(--ink-soft);}
+.li{display:flex;align-items:center;gap:9px;padding:8px 12px;font-size:.8rem;border-bottom:1px solid rgba(200,169,110,.1);}
+.li:last-child{border-bottom:none;}
+.ldot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.ldot.ok{background:var(--ok);}.ldot.fail{background:var(--fail);}
+.ltime{color:var(--text-muted);font-size:.65rem;margin-left:auto;}
+.lempty{padding:18px;text-align:center;color:var(--text-muted);font-size:.8rem;}
 
-/* ── MANAGE ──────────────────────────────── */
-.manage-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(200,169,110,.1);flex-wrap:wrap;font-size:.85rem;}
-.manage-num{font-family:'Cinzel',serif;font-size:.7rem;color:var(--gold);width:38px;flex-shrink:0;}
-.manage-code{font-family:monospace;font-size:.75rem;color:var(--text-muted);flex:1;min-width:100px;}
-.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.64rem;letter-spacing:1px;font-family:'Cinzel',serif;}
-.badge-used{background:var(--fail-bg);color:var(--fail);}
-.badge-unused{background:var(--ok-bg);color:var(--ok);}
-.manage-count{font-family:'Cinzel',serif;font-size:.68rem;color:var(--text-muted);margin-left:auto;}
-.empty-state{text-align:center;padding:40px 20px;color:var(--text-muted);}
-.empty-icon{font-size:2.4rem;margin-bottom:12px;}
+/* ── MANAGE ────────────────────────────── */
+.mi{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(200,169,110,.1);flex-wrap:wrap;font-size:.82rem;}
+.mnum{font-family:'Cinzel',serif;font-size:.68rem;color:var(--gold);width:36px;flex-shrink:0;}
+.mcode{font-family:monospace;font-size:.72rem;color:var(--text-muted);flex:1;min-width:100px;}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.62rem;letter-spacing:1px;font-family:'Cinzel',serif;}
+.bu{background:var(--fail-bg);color:var(--fail);}
+.bn{background:var(--ok-bg);color:var(--ok);}
+.mc{font-family:'Cinzel',serif;font-size:.65rem;color:var(--text-muted);margin-left:auto;}
+.empty-state{text-align:center;padding:36px 16px;color:var(--text-muted);}
+.ei{font-size:2.2rem;margin-bottom:10px;}
 
-/* ── PROGRESS ────────────────────────────── */
-#progress-overlay{display:none;position:fixed;inset:0;background:rgba(13,11,8,.9);z-index:300;align-items:center;justify-content:center;}
-#progress-overlay.show{display:flex;}
-.progress-card{background:var(--ink-mid);border:2px solid var(--gold-border);border-radius:var(--radius);padding:40px 50px;text-align:center;min-width:300px;box-shadow:0 40px 100px rgba(0,0,0,.7);}
-.progress-title{font-family:'Cinzel',serif;font-size:.9rem;letter-spacing:3px;color:var(--gold);margin-bottom:20px;}
-.progress-track{background:var(--ink-soft);border-radius:20px;height:8px;overflow:hidden;margin-bottom:10px;}
-.progress-fill{height:100%;background:var(--gold);width:0%;transition:width .1s;border-radius:20px;}
-.progress-pct{font-size:.85rem;color:var(--text-muted);}
+/* ── PROGRESS ──────────────────────────── */
+#prog-ov{display:none;position:fixed;inset:0;background:rgba(13,11,8,.9);z-index:300;align-items:center;justify-content:center;}
+#prog-ov.show{display:flex;}
+.pc{background:var(--ink-mid);border:2px solid var(--gold-border);border-radius:var(--r);padding:36px 44px;text-align:center;min-width:280px;}
+.pt{font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:3px;color:var(--gold);margin-bottom:18px;}
+.ptrack{background:var(--ink-soft);border-radius:20px;height:7px;overflow:hidden;margin-bottom:9px;}
+.pfill{height:100%;background:var(--gold);width:0%;transition:width .1s;border-radius:20px;}
+.ppct{font-size:.82rem;color:var(--text-muted);}
 
-::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:var(--ink-soft);}
 ::-webkit-scrollbar-thumb{background:var(--gold-border);border-radius:3px;}
 
 @media print{
-  #login-screen,.topbar,.bottom-nav,.syncbar,.btn-row,.manual-row,#progress-overlay{display:none!important}
+  #login-screen,.topbar,.bnav,.syncbar,.brow,.manual-row,#prog-ov{display:none!important}
   body{background:white;color:black;}
   .main{padding:0!important;}
   .page{display:block!important;}
@@ -269,44 +207,37 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 
 <!-- LOGIN -->
 <div id="login-screen">
-  <div class="login-wrap">
-    <div class="login-crest">
-      <div class="login-crest-line"><span class="crest-icon">&#9830;</span></div>
-      <div class="login-title">WEDDING QR</div>
-      <div class="login-sub">ENTRANCE MANAGEMENT</div>
+  <div class="lw">
+    <div class="lcrest">
+      <div class="lcrest-line">
+        <!-- small ring ornament -->
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="14" cy="14" r="5.5" stroke="#c8a96e" stroke-width="1.2"/>
+          <circle cx="14" cy="14" r="10" stroke="#c8a96e" stroke-width=".5" stroke-dasharray="2 2"/>
+          <path d="M14 3 L14 1 M14 25 L14 27 M3 14 L1 14 M25 14 L27 14" stroke="#c8a96e" stroke-width=".8"/>
+        </svg>
+      </div>
+      <div class="ltitle">WEDDING QR</div>
+      <div class="lsub">ENTRANCE MANAGEMENT</div>
     </div>
-    <div class="login-card">
+    <div class="lcard">
       <div class="tab-row">
         <button class="tab-btn active" id="tab-join"   onclick="switchTab('join')">Join Session</button>
         <button class="tab-btn"        id="tab-create" onclick="switchTab('create')">New Session</button>
       </div>
-      <div class="login-body">
-        <div id="login-err" class="alert-box alert-error"></div>
-        <div id="login-ok"  class="alert-box alert-info"></div>
+      <div class="lbody">
+        <div id="lerr" class="aerr"></div>
+        <div id="lok"  class="aok"></div>
         <div id="panel-join">
-          <div class="field">
-            <label>Session Name</label>
-            <input type="text" id="join-name" placeholder="e.g. Sarah &amp; Ahmed 2025" autocomplete="off">
-          </div>
-          <div class="field">
-            <label>Password</label>
-            <input type="password" id="join-pass" placeholder="Session password" onkeydown="if(event.key==='Enter')doJoin()">
-          </div>
-          <button class="btn btn-primary btn-full" id="join-btn" onclick="doJoin()">&#9654; Join Session</button>
+          <div class="field"><label>Session Name</label><input type="text" id="join-name" placeholder="e.g. Sarah &amp; Ahmed 2025" autocomplete="off"></div>
+          <div class="field"><label>Password</label><input type="password" id="join-pass" placeholder="Session password" onkeydown="if(event.key==='Enter')doJoin()"></div>
+          <button class="btn btn-gold btn-full" id="join-btn" onclick="doJoin()">&#9654; Join Session</button>
         </div>
         <div id="panel-create" style="display:none">
-          <div class="hint-box">
-            Create a session for your event. Share the <strong>session name + password</strong> with all door staff — they open this page and join with the same credentials.
-          </div>
-          <div class="field">
-            <label>Session / Event Name</label>
-            <input type="text" id="create-name" placeholder="e.g. Sarah &amp; Ahmed 2025">
-          </div>
-          <div class="field">
-            <label>Password (share with staff)</label>
-            <input type="password" id="create-pass" placeholder="Choose a shared password" onkeydown="if(event.key==='Enter')doCreate()">
-          </div>
-          <button class="btn btn-primary btn-full" id="create-btn" onclick="doCreate()">&#9672; Create Session</button>
+          <div class="hint">Create a session for your event. Share the <strong>session name + password</strong> with all door staff.</div>
+          <div class="field"><label>Session / Event Name</label><input type="text" id="create-name" placeholder="e.g. Sarah &amp; Ahmed 2025"></div>
+          <div class="field"><label>Password (share with staff)</label><input type="password" id="create-pass" placeholder="Choose a shared password" onkeydown="if(event.key==='Enter')doCreate()"></div>
+          <button class="btn btn-gold btn-full" id="create-btn" onclick="doCreate()">&#9672; Create Session</button>
         </div>
       </div>
     </div>
@@ -315,671 +246,550 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 
 <!-- APP -->
 <div id="app">
-  <!-- TOP BAR -->
   <div class="topbar">
     <div class="topbar-brand">
-      &#9830; WEDDING QR
-      <span class="session-pill" id="session-pill">&#8212;</span>
+      <!-- ring logo -->
+      <svg width="18" height="18" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+        <circle cx="14" cy="14" r="5.5" stroke="#c8a96e" stroke-width="1.5"/>
+        <circle cx="14" cy="14" r="10" stroke="#c8a96e" stroke-width=".6" stroke-dasharray="2.5 2"/>
+      </svg>
+      WEDDING QR
+      <span class="spill" id="session-pill">&#8212;</span>
     </div>
-    <!-- Desktop tabs -->
-    <div class="topbar-tabs">
-      <button class="topbar-tab active" onclick="showPage('gen',this)">Generate</button>
-      <button class="topbar-tab"        onclick="showPage('scan',this)">Scanner</button>
-      <button class="topbar-tab"        onclick="showPage('manage',this)">Manage</button>
+    <!-- desktop tabs -->
+    <div class="dtabs">
+      <button class="dtab active" onclick="showPage('gen',this)">Generate</button>
+      <button class="dtab"        onclick="showPage('scan',this)">Scanner</button>
+      <button class="dtab"        onclick="showPage('manage',this)">Manage</button>
     </div>
-    <div class="topbar-end">
-      <button class="btn btn-outline btn-sm" onclick="doLogout()">&#10005; Logout</button>
+    <div class="tbend">
+      <button class="btn btn-out btn-sm" onclick="doLogout()">&#10005; Logout</button>
     </div>
   </div>
 
-  <!-- SYNC BAR -->
   <div class="syncbar">
-    <span class="sync-dot offline" id="sync-dot"></span>
-    <span id="sync-text">Connecting&hellip;</span>
+    <span class="sdot off" id="sdot"></span>
+    <span id="stxt">Connecting&hellip;</span>
   </div>
 
-  <!-- MAIN CONTENT -->
   <div class="main">
 
     <!-- GENERATE -->
     <div class="page active" id="page-gen">
-      <div class="page-head">
-        <div class="ornament">&#10022; &#10022; &#10022;</div>
+      <div class="ph">
+        <div class="orn">&#10022; &#10022; &#10022;</div>
         <h1>QR Generator</h1>
         <p>Create unique entrance codes for your celebration</p>
       </div>
       <div class="panel">
-        <div class="form-row">
-          <div class="form-field">
-            <label>Couple / Event Name (printed on cards)</label>
-            <input type="text" id="event-name" placeholder="Sarah &amp; Ahmed">
-          </div>
-          <div class="form-field">
-            <label>Number of QR Codes</label>
-            <input type="number" id="qr-count" value="50" min="1" max="1000">
-          </div>
+        <div class="frow">
+          <div class="ff"><label>Couple / Event Name (on cards)</label><input type="text" id="event-name" placeholder="Sarah &amp; Ahmed"></div>
+          <div class="ff"><label>Number of QR Codes</label><input type="number" id="qr-count" value="50" min="1" max="1000"></div>
         </div>
-        <div class="btn-row" style="margin-top:8px;">
-          <button class="btn btn-primary" onclick="generateQRs()" id="gen-btn">&#10022; Generate Codes</button>
-          <button class="btn btn-outline" id="dl-btn"    onclick="downloadPDF()" disabled>&#8595; Download ZIP</button>
-          <button class="btn btn-outline" id="print-btn" onclick="window.print()" disabled>&#9113; Print</button>
+        <div class="brow">
+          <button class="btn btn-gold" onclick="generateQRs()" id="gen-btn">&#10022; Generate</button>
+          <button class="btn btn-out"  id="dl-btn"    onclick="downloadPDF()" disabled>&#8595; Download ZIP</button>
+          <button class="btn btn-out"  id="print-btn" onclick="window.print()" disabled>&#9113; Print</button>
         </div>
-        <div class="info-strip" id="gen-info">Generate codes — they save to the database and sync to all devices instantly.</div>
+        <div class="istrip" id="gen-info">Generate codes — saved to database, synced to all devices.</div>
       </div>
       <div class="divider">PREVIEW</div>
-      <div id="qr-grid"><div class="empty-state"><div class="empty-icon">&#9671;</div><div>No codes yet</div></div></div>
+      <div id="qr-grid"><div class="empty-state"><div class="ei">&#9671;</div><div>No codes yet</div></div></div>
     </div>
 
     <!-- SCANNER -->
     <div class="page" id="page-scan">
-      <div class="page-head">
-        <div class="ornament">&#10022; &#10022; &#10022;</div>
+      <div class="ph">
+        <div class="orn">&#10022; &#10022; &#10022;</div>
         <h1>Guest Scanner</h1>
-        <p>Each code is valid once &mdash; scans sync live across all devices</p>
+        <p>Tap the button below to scan &mdash; each code works once</p>
       </div>
-      <div class="stats-grid">
-        <div class="stat"><span class="stat-num" id="stat-total">0</span><div class="stat-lbl">Total</div></div>
-        <div class="stat"><span class="stat-num" id="stat-scanned">0</span><div class="stat-lbl">Scanned</div></div>
-        <div class="stat"><span class="stat-num" id="stat-remaining">0</span><div class="stat-lbl">Remaining</div></div>
+
+      <div class="sgrid">
+        <div class="scard"><span class="snum" id="stat-total">0</span><div class="slbl">Total</div></div>
+        <div class="scard"><span class="snum" id="stat-scanned">0</span><div class="slbl">Scanned</div></div>
+        <div class="scard"><span class="snum" id="stat-remaining">0</span><div class="slbl">Remaining</div></div>
       </div>
-      <div class="scanner-layout">
-        <div>
-          <div id="video-wrap">
-            <video id="scanner-video" autoplay playsinline muted></video>
-            <div class="scan-overlay"><div class="scan-frame"><span></span><div class="scan-line"></div></div></div>
-          </div>
-          <div class="btn-row" style="margin-top:12px;">
-            <button class="btn btn-primary" id="start-btn" onclick="startCamera()">&#9654; Start Camera</button>
-            <button class="btn btn-outline" id="stop-btn"  onclick="stopCamera()" disabled>&#9632; Stop</button>
-          </div>
-          <!-- iOS note shown automatically on iPhone -->
-          <div class="ios-note" id="ios-note">
-            &#128241; <strong>iPhone tip:</strong> Make sure you open this page in <strong>Safari</strong> (not Chrome or another browser) for the camera to work correctly on iOS.
-          </div>
-          <div class="manual-row">
-            <input type="text" id="manual-code" placeholder="Or type / paste code&hellip;" onkeydown="if(event.key==='Enter')manualCheck()">
-            <button class="btn btn-outline" onclick="manualCheck()">Check</button>
-          </div>
+
+      <!-- The big scan button — opens native camera on iPhone -->
+      <div class="scan-hero" id="scan-hero">
+        <!-- camera + QR themed SVG icon -->
+        <div class="scan-hero-icon">
+          <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- outer rounded rect (camera body) -->
+            <rect x="6" y="16" width="60" height="44" rx="7" stroke="#c8a96e" stroke-width="2" fill="none"/>
+            <!-- lens circle -->
+            <circle cx="36" cy="38" r="13" stroke="#c8a96e" stroke-width="1.8" fill="none"/>
+            <circle cx="36" cy="38" r="7"  stroke="#c8a96e" stroke-width="1.2" fill="none"/>
+            <!-- viewfinder dot -->
+            <circle cx="36" cy="38" r="2.2" fill="#c8a96e"/>
+            <!-- top bump (shutter) -->
+            <path d="M28 16 Q28 10 34 10 L38 10 Q44 10 44 16" stroke="#c8a96e" stroke-width="1.8" fill="none"/>
+            <!-- corner frame marks (QR style) -->
+            <path d="M14 24 L14 20 L18 20" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M54 24 L54 20 L50 20" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M14 52 L14 56 L18 56" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M54 52 L54 56 L50 56" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
+            <!-- small flash indicator -->
+            <circle cx="57" cy="28" r="3.5" stroke="#c8a96e" stroke-width="1.2" fill="none"/>
+          </svg>
         </div>
-        <div>
-          <div class="result-box" id="result-box">
-            <div class="result-icon">&#9671;</div>
-            <div class="result-title">READY</div>
-            <div class="result-sub">Point camera at a guest QR code</div>
-          </div>
-          <div style="margin-top:16px;">
-            <div style="font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:2px;color:var(--gold-dim);margin-bottom:8px;">RECENT SCANS</div>
-            <div class="log-list" id="log-list"><div class="log-empty">No scans yet</div></div>
-          </div>
-        </div>
+        <div class="scan-hero-title">TAP TO SCAN</div>
+        <div class="scan-hero-sub">Opens your iPhone camera<br>Point at the guest&rsquo;s QR card &amp; take a photo</div>
+        <!-- This is the actual file input — invisible, covers the whole box -->
+        <input type="file" id="camera-input" accept="image/*" capture="environment">
+      </div>
+
+      <div class="result-box" id="result-box">
+        <div class="ri">&#9671;</div>
+        <div class="rt">READY</div>
+        <div class="rs">Tap the button above to scan a guest&rsquo;s code</div>
+      </div>
+
+      <div class="manual-row">
+        <input type="text" id="manual-code" placeholder="Or type / paste code manually&hellip;" onkeydown="if(event.key==='Enter')manualCheck()">
+        <button class="btn btn-out" onclick="manualCheck()">Check</button>
+      </div>
+
+      <div class="log-wrap">
+        <div class="log-lbl">RECENT SCANS</div>
+        <div class="log-list" id="log-list"><div class="lempty">No scans yet</div></div>
       </div>
     </div>
 
     <!-- MANAGE -->
     <div class="page" id="page-manage">
-      <div class="page-head">
-        <div class="ornament">&#10022; &#10022; &#10022;</div>
+      <div class="ph">
+        <div class="orn">&#10022; &#10022; &#10022;</div>
         <h1>Manage Codes</h1>
         <p>View and reset codes in this session only</p>
       </div>
       <div class="panel">
-        <div class="btn-row">
-          <button class="btn btn-outline btn-sm" onclick="renderManage('all')">All</button>
-          <button class="btn btn-outline btn-sm" onclick="renderManage('unused')">Unused</button>
-          <button class="btn btn-outline btn-sm" onclick="renderManage('used')">Used</button>
-          <span class="manage-count" id="manage-count"></span>
-          <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="resetAllUsed()">&#8634; Reset All</button>
+        <div class="brow">
+          <button class="btn btn-out btn-sm" onclick="renderManage('all')">All</button>
+          <button class="btn btn-out btn-sm" onclick="renderManage('unused')">Unused</button>
+          <button class="btn btn-out btn-sm" onclick="renderManage('used')">Used</button>
+          <span class="mc" id="mc"></span>
+          <button class="btn btn-red btn-sm" style="margin-left:auto;" onclick="resetAllUsed()">&#8634; Reset All</button>
         </div>
       </div>
       <div class="panel" id="manage-list">
-        <div class="empty-state"><div class="empty-icon">&#9671;</div><div>No codes generated yet</div></div>
+        <div class="empty-state"><div class="ei">&#9671;</div><div>No codes generated yet</div></div>
       </div>
     </div>
 
   </div><!-- /main -->
 
   <!-- BOTTOM NAV (mobile) -->
-  <nav class="bottom-nav" id="bottom-nav">
-    <div class="bottom-nav-inner">
-      <button class="bnav-btn active" id="bnav-gen" onclick="showPageMobile('gen', this)">
-        <span class="bnav-icon">&#9672;</span>
-        <span>Generate</span>
+  <nav class="bnav" id="bnav">
+    <div class="bnav-inner">
+
+      <!-- Generate tab: diamond/sparkle icon -->
+      <button class="bnav-btn active" id="bnav-gen" onclick="navTo('gen',this)">
+        <svg class="bnav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2 L14.5 9.5 L22 12 L14.5 14.5 L12 22 L9.5 14.5 L2 12 L9.5 9.5 Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>
+          <circle cx="12" cy="12" r="2" fill="currentColor" opacity=".4"/>
+        </svg>
+        <span class="bnav-label">GENERATE</span>
       </button>
-      <button class="bnav-btn" id="bnav-scan" onclick="showPageMobile('scan', this)">
-        <span class="bnav-icon">&#9654;</span>
-        <span>Scanner</span>
+
+      <!-- Scanner tab: camera + ring icon -->
+      <button class="bnav-btn" id="bnav-scan" onclick="navTo('scan',this)">
+        <svg class="bnav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- camera body -->
+          <rect x="2" y="6" width="20" height="14" rx="2.5" stroke="currentColor" stroke-width="1.4" fill="none"/>
+          <!-- lens -->
+          <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="1.4" fill="none"/>
+          <circle cx="12" cy="13" r="1.5" fill="currentColor" opacity=".5"/>
+          <!-- shutter bump -->
+          <path d="M9 6 Q9 3.5 10.5 3.5 L13.5 3.5 Q15 3.5 15 6" stroke="currentColor" stroke-width="1.4" fill="none"/>
+          <!-- corner ticks (QR reference) -->
+          <path d="M5 8.5 L5 7 L6.5 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M19 8.5 L19 7 L17.5 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        <span class="bnav-label">SCANNER</span>
       </button>
-      <button class="bnav-btn" id="bnav-manage" onclick="showPageMobile('manage', this)">
-        <span class="bnav-icon">&#9776;</span>
-        <span>Manage</span>
+
+      <!-- Manage tab: list with diamond bullets -->
+      <button class="bnav-btn" id="bnav-manage" onclick="navTo('manage',this)">
+        <svg class="bnav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- three rows -->
+          <line x1="9" y1="6"  x2="20" y2="6"  stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="9" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="9" y1="18" x2="20" y2="18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          <!-- diamond bullets -->
+          <path d="M4 6 L5.2 7.2 L4 8.4 L2.8 7.2 Z" fill="currentColor"/>
+          <path d="M4 12 L5.2 13.2 L4 14.4 L2.8 13.2 Z" fill="currentColor"/>
+          <path d="M4 18 L5.2 19.2 L4 20.4 L2.8 19.2 Z" fill="currentColor"/>
+        </svg>
+        <span class="bnav-label">MANAGE</span>
       </button>
+
     </div>
   </nav>
-
 </div><!-- /app -->
 
-<div id="progress-overlay">
-  <div class="progress-card">
-    <div class="progress-title">GENERATING PDFs</div>
-    <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
-    <div class="progress-pct" id="prog-txt">0%</div>
+<div id="prog-ov">
+  <div class="pc">
+    <div class="pt">GENERATING PDFs</div>
+    <div class="ptrack"><div class="pfill" id="pfill"></div></div>
+    <div class="ppct" id="ppct">0%</div>
   </div>
 </div>
 
 <script>
-// ════════════════════════════════════════════════════
-//  SUPABASE CONFIG
-// ════════════════════════════════════════════════════
+// ══════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════
 var SUPABASE_URL      = 'https://pyfinjrjvkudyfteelkw.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5ZmluanJqdmt1ZHlmdGVlbGt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0ODk1MjQsImV4cCI6MjA5MDA2NTUyNH0.unWUjfa883HFkzaZgoOYHyMGs_7eXPkOD71EokomWLA';
-// ════════════════════════════════════════════════════
 
-var CONFIGURED = SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY.length > 20;
-var sb = CONFIGURED ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Detect iOS
-var IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-if (IS_IOS) document.getElementById('ios-note').style.display = 'block';
+// ── STATE ──────────────────────────────────────
+var SESSION_ID=null, SESSION_NAME=null;
+var codes=[], usedSet=new Set(), scanLog=[], realtimeSub=null;
 
-// ── STATE ─────────────────────────────────────────────
-var SESSION_ID   = null;
-var SESSION_NAME = null;
-var codes        = [];
-var usedSet      = new Set();
-var scanLog      = [];
-var realtimeSub  = null;
+// ══════════════════════════════════════════════
+//  CAMERA INPUT — iPhone-native approach
+//  Uses <input type="file" capture="environment">
+//  which opens iOS native camera directly.
+//  No getUserMedia, no canvas stream, no RAF loop.
+//  Just: take photo → decode with jsQR → done.
+// ══════════════════════════════════════════════
+document.getElementById('camera-input').addEventListener('change', function(e){
+  var file = e.target.files && e.target.files[0];
+  if (!file) return;
 
-// ── NAV ───────────────────────────────────────────────
+  // Visual feedback
+  document.getElementById('scan-hero').classList.add('scanning');
+
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var img = new Image();
+    img.onload = function(){
+      // Draw to offscreen canvas and run jsQR
+      var c = document.createElement('canvas');
+      // Scale down very large iPhone photos for jsQR performance (max 1200px)
+      var maxDim = 1200;
+      var scale  = Math.min(1, maxDim / Math.max(img.width, img.height));
+      c.width  = Math.round(img.width  * scale);
+      c.height = Math.round(img.height * scale);
+      var ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      var imageData = ctx.getImageData(0, 0, c.width, c.height);
+      var result    = jsQR(imageData.data, c.width, c.height, { inversionAttempts: 'attemptBoth' });
+      if (result && result.data) {
+        processCode(result.data);
+      } else {
+        showResult('fail', '?', 'NOT FOUND', 'No QR code detected — try again, hold steady');
+      }
+      document.getElementById('scan-hero').classList.remove('scanning');
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+
+  // Reset input so the same file can trigger change again
+  e.target.value = '';
+});
+
+// ── NAV ────────────────────────────────────────
 function showPage(id, btn) {
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
-  document.querySelectorAll('.topbar-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.dtab').forEach(function(t){ t.classList.remove('active'); });
   document.getElementById('page-'+id).classList.add('active');
   if (btn) btn.classList.add('active');
-  // Sync bottom nav active state
-  ['gen','scan','manage'].forEach(function(x){
-    var b = document.getElementById('bnav-'+x);
-    if (b) b.classList.toggle('active', x===id);
-  });
+  syncBnav(id);
   if (id==='scan')   updateStats();
   if (id==='manage') renderManage('all');
 }
-
-function showPageMobile(id, btn) {
+function navTo(id, btn) {
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
   document.querySelectorAll('.bnav-btn').forEach(function(b){ b.classList.remove('active'); });
   document.getElementById('page-'+id).classList.add('active');
   btn.classList.add('active');
-  // sync desktop tabs
-  document.querySelectorAll('.topbar-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.dtab').forEach(function(t){ t.classList.remove('active'); });
   if (id==='scan')   updateStats();
   if (id==='manage') renderManage('all');
 }
+function syncBnav(id){
+  ['gen','scan','manage'].forEach(function(x){
+    var b=document.getElementById('bnav-'+x);
+    if(b) b.classList.toggle('active', x===id);
+  });
+}
 
-// ── LOGIN ─────────────────────────────────────────────
-function switchTab(tab) {
+// ── LOGIN ───────────────────────────────────────
+function switchTab(tab){
   document.getElementById('tab-join').classList.toggle('active',   tab==='join');
   document.getElementById('tab-create').classList.toggle('active', tab==='create');
-  document.getElementById('panel-join').style.display   = tab==='join'   ? '' : 'none';
-  document.getElementById('panel-create').style.display = tab==='create' ? '' : 'none';
-  clearAlerts();
+  document.getElementById('panel-join').style.display   = tab==='join'   ? '':'none';
+  document.getElementById('panel-create').style.display = tab==='create' ? '':'none';
+  clrAlerts();
 }
-function showErr(msg){ var el=document.getElementById('login-err'); el.textContent=msg; el.style.display='block'; document.getElementById('login-ok').style.display='none'; }
-function showOk(msg) { var el=document.getElementById('login-ok');  el.textContent=msg; el.style.display='block'; document.getElementById('login-err').style.display='none'; }
-function clearAlerts(){ document.getElementById('login-err').style.display='none'; document.getElementById('login-ok').style.display='none'; }
-function btnLoad(id,on,lbl){ var b=document.getElementById(id); b.disabled=on; b.textContent=on?'…':lbl; }
+function showErr(m){ var e=document.getElementById('lerr'); e.textContent=m; e.style.display='block'; document.getElementById('lok').style.display='none'; }
+function showOk(m) { var e=document.getElementById('lok');  e.textContent=m; e.style.display='block'; document.getElementById('lerr').style.display='none'; }
+function clrAlerts(){ document.getElementById('lerr').style.display='none'; document.getElementById('lok').style.display='none'; }
+function btnLd(id,on,lbl){ var b=document.getElementById(id); b.disabled=on; b.textContent=on?'…':lbl; }
 
-async function doCreate() {
-  if (!CONFIGURED) { showErr('Supabase not configured.'); return; }
-  var name = document.getElementById('create-name').value.trim();
-  var pass = document.getElementById('create-pass').value.trim();
-  if (!name) { showErr('Enter a session name.'); return; }
-  if (!pass) { showErr('Enter a password.'); return; }
-  btnLoad('create-btn', true, '◆ Create Session');
-  var check = await sb.from('sessions').select('id').ilike('name', name).maybeSingle();
-  if (check.data) { showErr('Session name already exists. Use "Join Session".'); btnLoad('create-btn',false,'◆ Create Session'); return; }
-  var res = await sb.from('sessions').insert({ name, password_hash: hash(pass) }).select().single();
-  if (res.error) { showErr('Error: '+res.error.message); btnLoad('create-btn',false,'◆ Create Session'); return; }
+async function doCreate(){
+  var name=document.getElementById('create-name').value.trim();
+  var pass=document.getElementById('create-pass').value.trim();
+  if(!name){showErr('Enter a session name.');return;}
+  if(!pass){showErr('Enter a password.');return;}
+  btnLd('create-btn',true,'◆ Create Session');
+  var chk=await sb.from('sessions').select('id').ilike('name',name).maybeSingle();
+  if(chk.data){showErr('Session name already exists. Use "Join Session".');btnLd('create-btn',false,'◆ Create Session');return;}
+  var res=await sb.from('sessions').insert({name,password_hash:hash(pass)}).select().single();
+  if(res.error){showErr('Error: '+res.error.message);btnLd('create-btn',false,'◆ Create Session');return;}
   showOk('Session created! Joining…');
-  setTimeout(function(){ enterApp(res.data.id, name); }, 600);
+  setTimeout(function(){enterApp(res.data.id,name);},600);
 }
 
-async function doJoin() {
-  if (!CONFIGURED) { showErr('Supabase not configured.'); return; }
-  var name = document.getElementById('join-name').value.trim();
-  var pass = document.getElementById('join-pass').value.trim();
-  if (!name) { showErr('Enter the session name.'); return; }
-  if (!pass) { showErr('Enter the password.'); return; }
-  btnLoad('join-btn', true, '▶ Join Session');
-  var res = await sb.from('sessions').select('id,name,password_hash').ilike('name',name).maybeSingle();
-  if (res.error || !res.data) { showErr('Session not found. Check the name or create a new one.'); btnLoad('join-btn',false,'▶ Join Session'); return; }
-  if (res.data.password_hash !== hash(pass)) { showErr('Incorrect password.'); btnLoad('join-btn',false,'▶ Join Session'); return; }
-  enterApp(res.data.id, res.data.name);
+async function doJoin(){
+  var name=document.getElementById('join-name').value.trim();
+  var pass=document.getElementById('join-pass').value.trim();
+  if(!name){showErr('Enter the session name.');return;}
+  if(!pass){showErr('Enter the password.');return;}
+  btnLd('join-btn',true,'▶ Join Session');
+  var res=await sb.from('sessions').select('id,name,password_hash').ilike('name',name).maybySingle ? 
+          await sb.from('sessions').select('id,name,password_hash').ilike('name',name).maybeSingle() :
+          await sb.from('sessions').select('id,name,password_hash').ilike('name',name).maybeSingle();
+  if(res.error||!res.data){showErr('Session not found.');btnLd('join-btn',false,'▶ Join Session');return;}
+  if(res.data.password_hash!==hash(pass)){showErr('Incorrect password.');btnLd('join-btn',false,'▶ Join Session');return;}
+  enterApp(res.data.id,res.data.name);
 }
 
-async function enterApp(sessionId, sessionName) {
-  SESSION_ID   = sessionId;
-  SESSION_NAME = sessionName;
-  localStorage.setItem('wqr_session', JSON.stringify({ id:sessionId, name:sessionName }));
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display          = 'flex';
-  document.getElementById('session-pill').textContent   = sessionName;
-  document.getElementById('event-name').value           = sessionName;
-  setSyncStatus('syncing','Loading…');
+async function enterApp(sid,sname){
+  SESSION_ID=sid; SESSION_NAME=sname;
+  localStorage.setItem('wqr_session',JSON.stringify({id:sid,name:sname}));
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('session-pill').textContent=sname;
+  document.getElementById('event-name').value=sname;
+  setSS('syncing','Loading…');
   await loadCodes();
-  subscribeRealtime();
+  subscribeRT();
   updateStats();
 }
 
-async function loadCodes() {
-  var res = await sb.from('codes').select('*').eq('session_id',SESSION_ID).order('num',{ascending:true});
-  if (res.error) { setSyncStatus('error','Load error'); return; }
-  codes   = res.data || [];
-  usedSet = new Set(codes.filter(function(c){ return c.used_at !== null; }).map(function(c){ return c.code_id; }));
-  if (codes.length > 0) renderQRGrid();
+async function loadCodes(){
+  var res=await sb.from('codes').select('*').eq('session_id',SESSION_ID).order('num',{ascending:true});
+  if(res.error){setSS('err','Load error');return;}
+  codes=res.data||[];
+  usedSet=new Set(codes.filter(function(c){return c.used_at!==null;}).map(function(c){return c.code_id;}));
+  if(codes.length>0) renderGrid();
   updateStats();
-  setSyncStatus('live','Live · '+codes.length+' codes');
+  setSS('live','Live · '+codes.length+' codes');
 }
 
-function subscribeRealtime() {
-  if (realtimeSub) { sb.removeChannel(realtimeSub); realtimeSub=null; }
-  realtimeSub = sb.channel('codes-'+SESSION_ID)
-    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'codes',filter:'session_id=eq.'+SESSION_ID}, function(p){
-      var u=p.new, idx=codes.findIndex(function(c){ return c.code_id===u.code_id; });
-      if (idx!==-1) codes[idx]=u;
-      if (u.used_at) usedSet.add(u.code_id); else usedSet.delete(u.code_id);
-      updateStats();
-      setSyncStatus('live','Live · updated '+new Date().toLocaleTimeString());
+function subscribeRT(){
+  if(realtimeSub){sb.removeChannel(realtimeSub);realtimeSub=null;}
+  realtimeSub=sb.channel('codes-'+SESSION_ID)
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'codes',filter:'session_id=eq.'+SESSION_ID},function(p){
+      var u=p.new, idx=codes.findIndex(function(c){return c.code_id===u.code_id;});
+      if(idx!==-1) codes[idx]=u;
+      if(u.used_at) usedSet.add(u.code_id); else usedSet.delete(u.code_id);
+      updateStats(); setSS('live','Live · '+new Date().toLocaleTimeString());
     })
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'codes',filter:'session_id=eq.'+SESSION_ID}, function(p){
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'codes',filter:'session_id=eq.'+SESSION_ID},function(p){
       codes.push(p.new); updateStats();
     })
-    .subscribe(function(status){
-      if (status==='SUBSCRIBED') setSyncStatus('live','Live · synced');
-      if (status==='CHANNEL_ERROR') setSyncStatus('error','Realtime error');
+    .subscribe(function(s){
+      if(s==='SUBSCRIBED') setSS('live','Live · synced');
+      if(s==='CHANNEL_ERROR') setSS('err','Realtime error');
     });
 }
 
-function doLogout() {
-  if (realtimeSub) { sb.removeChannel(realtimeSub); realtimeSub=null; }
-  stopCamera();
+function doLogout(){
+  if(realtimeSub){sb.removeChannel(realtimeSub);realtimeSub=null;}
   SESSION_ID=SESSION_NAME=null; codes=[]; usedSet=new Set(); scanLog=[];
   localStorage.removeItem('wqr_session');
   document.getElementById('app').style.display='none';
   document.getElementById('login-screen').style.display='';
-  document.getElementById('qr-grid').innerHTML='<div class="empty-state"><div class="empty-icon">&#9671;</div><div>No codes yet</div></div>';
+  document.getElementById('qr-grid').innerHTML='<div class="empty-state"><div class="ei">&#9671;</div><div>No codes yet</div></div>';
   document.getElementById('join-name').value=''; document.getElementById('join-pass').value='';
-  clearAlerts(); switchTab('join');
+  clrAlerts(); switchTab('join');
 }
 
-// ── GENERATE ──────────────────────────────────────────
-function uid(){ return 'WED-'+Math.random().toString(36).substr(2,4).toUpperCase()+Math.random().toString(36).substr(2,4).toUpperCase(); }
+// ── GENERATE ────────────────────────────────────
+function uid(){return 'WED-'+Math.random().toString(36).substr(2,4).toUpperCase()+Math.random().toString(36).substr(2,4).toUpperCase();}
 
-async function generateQRs() {
-  if (!SESSION_ID) return;
-  var count = parseInt(document.getElementById('qr-count').value);
-  var name  = document.getElementById('event-name').value.trim() || 'Wedding';
-  if (!count||count<1) { alert('Enter a valid number.'); return; }
+async function generateQRs(){
+  if(!SESSION_ID) return;
+  var count=parseInt(document.getElementById('qr-count').value);
+  var name=document.getElementById('event-name').value.trim()||'Wedding';
+  if(!count||count<1){alert('Enter a valid number.');return;}
   document.getElementById('gen-btn').disabled=true;
   document.getElementById('gen-info').textContent='Saving to database…';
   await sb.from('codes').delete().eq('session_id',SESSION_ID);
   var batch=[];
-  for (var i=1;i<=count;i++) batch.push({session_id:SESSION_ID,code_id:uid(),num:i,name:name,used_at:null});
+  for(var i=1;i<=count;i++) batch.push({session_id:SESSION_ID,code_id:uid(),num:i,name:name,used_at:null});
   var CHUNK=500;
-  for (var j=0;j<batch.length;j+=CHUNK) {
+  for(var j=0;j<batch.length;j+=CHUNK){
     var res=await sb.from('codes').insert(batch.slice(j,j+CHUNK));
-    if (res.error) { alert('DB error: '+res.error.message); document.getElementById('gen-btn').disabled=false; return; }
+    if(res.error){alert('DB error: '+res.error.message);document.getElementById('gen-btn').disabled=false;return;}
   }
   codes=batch; usedSet=new Set(); scanLog=[];
-  renderQRGrid(); updateStats();
+  renderGrid(); updateStats();
   document.getElementById('dl-btn').disabled=false;
   document.getElementById('print-btn').disabled=false;
   document.getElementById('gen-btn').disabled=false;
-  document.getElementById('gen-info').textContent=count+' codes generated and saved to database.';
-  setSyncStatus('live','Live · '+count+' codes saved');
+  document.getElementById('gen-info').textContent=count+' codes generated and saved.';
+  setSS('live','Live · '+count+' codes saved');
 }
 
-function renderQRGrid() {
+function renderGrid(){
   var grid=document.getElementById('qr-grid'); grid.innerHTML='';
   codes.forEach(function(c){
-    var div=document.createElement('div'); div.className='qr-item'; div.id='qi-'+c.code_id;
-    var qDiv=document.createElement('div');
-    new QRCode(qDiv,{text:c.code_id,width:112,height:112,colorDark:'#0d0b08',colorLight:'#f7f2e8',correctLevel:QRCode.CorrectLevel.M});
-    var lbl=document.createElement('div'); lbl.className='qr-lbl'; lbl.textContent='#'+c.num;
-    div.appendChild(qDiv); div.appendChild(lbl); grid.appendChild(div);
+    var div=document.createElement('div'); div.className='qi'; div.id='qi-'+c.code_id;
+    var qd=document.createElement('div');
+    new QRCode(qd,{text:c.code_id,width:108,height:108,colorDark:'#0d0b08',colorLight:'#f7f2e8',correctLevel:QRCode.CorrectLevel.M});
+    var lb=document.createElement('div'); lb.className='qlbl'; lb.textContent='#'+c.num;
+    div.appendChild(qd); div.appendChild(lb); grid.appendChild(div);
   });
   document.getElementById('dl-btn').disabled=false;
   document.getElementById('print-btn').disabled=false;
 }
 
-// ════════════════════════════════════════════════════
-//  PDF — completely rewritten card layout with large text
-// ════════════════════════════════════════════════════
-function loadScript(src){ return new Promise(function(r,e){ var s=document.createElement('script'); s.src=src; s.onload=r; s.onerror=e; document.head.appendChild(s); }); }
-function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+// ── PDF ──────────────────────────────────────────
+function ldScript(src){return new Promise(function(r,e){var s=document.createElement('script');s.src=src;s.onload=r;s.onerror=e;document.head.appendChild(s);});}
+function slp(ms){return new Promise(function(r){setTimeout(r,ms);});}
 
-function buildCard(doc, c, couple) {
-  // A5 = 148 × 210 mm
-  var W = 148, H = 210;
-  var pad = 7; // page margin
-
-  // ── background ──────────────────────────
-  doc.setFillColor(250, 246, 239);
-  doc.rect(0, 0, W, H, 'F');
-
-  // ── outer gold border ────────────────────
-  doc.setDrawColor(200, 169, 110);
-  doc.setLineWidth(1.2);
-  doc.rect(pad, pad, W - pad*2, H - pad*2);
-
-  // ── inner thin border ────────────────────
-  doc.setLineWidth(0.3);
-  doc.rect(pad + 3.5, pad + 3.5, W - (pad+3.5)*2, H - (pad+3.5)*2);
-
-  // ── couple name ──────────────────────────
-  // Large, centred, bold
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(22);
-  doc.setTextColor(40, 28, 8);
-  doc.text(couple, W / 2, pad + 18, { align: 'center' });
-
-  // ── decorative line ──────────────────────
-  doc.setDrawColor(200, 169, 110);
-  doc.setLineWidth(0.5);
-  var lx = W * 0.2, lw = W * 0.6;
-  doc.line(lx, pad + 23, lx + lw, pad + 23);
-
-  // ── QR code ──────────────────────────────
-  // Large square, centred — 82mm
-  var qSize = 82;
-  var qX = (W - qSize) / 2;
-  var qY = pad + 28;
-  var qi = document.getElementById('qi-' + c.code_id);
-  var cv = qi ? qi.querySelector('canvas') : null;
-  if (cv) {
-    doc.addImage(cv.toDataURL('image/png'), 'PNG', qX, qY, qSize, qSize);
-  }
-  // thin border around QR
-  doc.setDrawColor(200, 169, 110);
-  doc.setLineWidth(0.4);
-  doc.rect(qX - 1, qY - 1, qSize + 2, qSize + 2);
-
-  var afterQR = qY + qSize + 6;
-
-  // ── decorative line ──────────────────────
-  doc.setDrawColor(200, 169, 110);
-  doc.setLineWidth(0.5);
-  doc.line(lx, afterQR, lx + lw, afterQR);
-
-  // ── GUEST # ──────────────────────────────
-  // Very large so it's readable at a glance
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(28);
-  doc.setTextColor(40, 28, 8);
-  doc.text('Guest  #' + c.num, W / 2, afterQR + 14, { align: 'center' });
-
-  // ── code string ──────────────────────────
-  // Larger monospace — was 7.5px, now 11px
-  doc.setFont('courier', 'bold');
-  doc.setFontSize(13);
-  doc.setTextColor(140, 110, 60);
-  doc.text(c.code_id, W / 2, afterQR + 24, { align: 'center' });
-
-  // ── instruction ──────────────────────────
-  // Larger italic line
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(12);
-  doc.setTextColor(100, 80, 40);
-  doc.text('Please present this card at the entrance', W / 2, afterQR + 35, { align: 'center' });
-
-  // ── bottom ornament ───────────────────────
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(14);
-  doc.setTextColor(200, 169, 110);
-  doc.text('\u2665   \u2665   \u2665', W / 2, H - pad - 6, { align: 'center' });
+function buildCard(doc,c,couple){
+  var W=148,H=210,pad=7;
+  doc.setFillColor(250,246,239); doc.rect(0,0,W,H,'F');
+  doc.setDrawColor(200,169,110); doc.setLineWidth(1.2); doc.rect(pad,pad,W-pad*2,H-pad*2);
+  doc.setLineWidth(0.3); doc.rect(pad+3.5,pad+3.5,W-(pad+3.5)*2,H-(pad+3.5)*2);
+  doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.setTextColor(40,28,8);
+  doc.text(couple,W/2,pad+18,{align:'center'});
+  doc.setDrawColor(200,169,110); doc.setLineWidth(0.5);
+  var lx=W*.2,lw=W*.6; doc.line(lx,pad+23,lx+lw,pad+23);
+  var qSize=82,qX=(W-qSize)/2,qY=pad+28;
+  var qi=document.getElementById('qi-'+c.code_id); var cv=qi?qi.querySelector('canvas'):null;
+  if(cv) doc.addImage(cv.toDataURL('image/png'),'PNG',qX,qY,qSize,qSize);
+  doc.setLineWidth(0.4); doc.rect(qX-1,qY-1,qSize+2,qSize+2);
+  var aQ=qY+qSize+6;
+  doc.line(lx,aQ,lx+lw,aQ);
+  doc.setFont('helvetica','bold'); doc.setFontSize(28); doc.setTextColor(40,28,8);
+  doc.text('Guest  #'+c.num,W/2,aQ+14,{align:'center'});
+  doc.setFont('courier','bold'); doc.setFontSize(13); doc.setTextColor(140,110,60);
+  doc.text(c.code_id,W/2,aQ+24,{align:'center'});
+  doc.setFont('helvetica','italic'); doc.setFontSize(12); doc.setTextColor(100,80,40);
+  doc.text('Please present this card at the entrance',W/2,aQ+35,{align:'center'});
+  doc.setFont('helvetica','normal'); doc.setFontSize(14); doc.setTextColor(200,169,110);
+  doc.text('\u2665   \u2665   \u2665',W/2,H-pad-6,{align:'center'});
 }
 
-async function downloadPDF() {
-  if (!codes.length) return;
-  if (!window.jspdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-  if (!window.JSZip)  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+async function downloadPDF(){
+  if(!codes.length) return;
+  if(!window.jspdf) await ldScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+  if(!window.JSZip) await ldScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
   var jsPDF=window.jspdf.jsPDF, zip=new JSZip();
-  var overlay=document.getElementById('progress-overlay'), fill=document.getElementById('prog-fill'), txt=document.getElementById('prog-txt');
-  overlay.classList.add('show');
+  var ov=document.getElementById('prog-ov'), fill=document.getElementById('pfill'), txt=document.getElementById('ppct');
+  ov.classList.add('show');
   var couple=document.getElementById('event-name').value.trim()||'Wedding';
-  var folder=zip.folder(couple.replace(/[^a-z0-9]/gi,'_')+'_QR_Codes');
-  for (var i=0;i<codes.length;i++){
+  var folder=zip.folder(couple.replace(/[^a-z0-9]/gi,'_')+'_QR');
+  for(var i=0;i<codes.length;i++){
     var c=codes[i];
     var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a5'});
     buildCard(doc,c,couple);
     folder.file('guest_'+String(c.num).padStart(4,'0')+'_'+c.code_id+'.pdf',doc.output('arraybuffer'));
     var pct=Math.round((i+1)/codes.length*100); fill.style.width=pct+'%'; txt.textContent=pct+'%';
-    if(i%10===0) await sleep(0);
+    if(i%10===0) await slp(0);
   }
   var blob=await zip.generateAsync({type:'blob'});
   var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download=couple.replace(/[^a-z0-9]/gi,'_')+'_QR.zip'; a.click();
-  overlay.classList.remove('show');
+  ov.classList.remove('show');
 }
 
-// ════════════════════════════════════════════════════
-//  SCANNER — iOS-safe implementation
-//  iOS Safari: getUserMedia works but needs specific
-//  constraints. BarcodeDetector does NOT exist on iOS.
-//  We use jsQR only (already loaded at page top).
-//  Key fix: we must call video.play() AFTER setting
-//  srcObject, and the video element must be visible
-//  (not display:none) for iOS to produce frames.
-// ════════════════════════════════════════════════════
-var stream=null, scanning=false, lastCode='', lastTime=0;
-var scanCanvas=document.createElement('canvas');
-var scanCtx=scanCanvas.getContext('2d',{willReadFrequently:true});
-var rafId=null;
-
-async function startCamera() {
-  // Progressive fallback constraints — iOS needs facingMode as string not object
-  var constraintSets = [
-    { video: { facingMode: { exact: 'environment' }, width: { ideal: 1280 }, height: { ideal: 1280 } } },
-    { video: { facingMode: 'environment' } },
-    { video: true }
-  ];
-
-  stream = null;
-  var lastErr = '';
-  for (var i = 0; i < constraintSets.length; i++) {
-    try {
-      stream = await navigator.mediaDevices.getUserMedia(constraintSets[i]);
-      break;
-    } catch(e) { lastErr = e.message; }
-  }
-
-  if (!stream) {
-    alert('Camera error: ' + lastErr + '\n\nOn iPhone: open this page in Safari, then allow camera access when prompted.');
-    return;
-  }
-
-  var video = document.getElementById('scanner-video');
-  video.srcObject = stream;
-
-  // iOS requires a user-gesture-triggered play()
-  // We also set these attributes directly for Safari compatibility
-  video.setAttribute('autoplay', '');
-  video.setAttribute('playsinline', '');
-  video.setAttribute('muted', '');
-
-  try {
-    await video.play();
-  } catch(e) {
-    // On some iOS versions play() returns a promise that rejects on first call
-    // but the video still plays — ignore
-  }
-
-  document.getElementById('start-btn').disabled = true;
-  document.getElementById('stop-btn').disabled  = false;
-  scanning = true;
-
-  // Wait until video has real dimensions before starting scan loop
-  waitForVideoReady(video);
-}
-
-function waitForVideoReady(video) {
-  if (video.readyState >= 2 && video.videoWidth > 0) {
-    scanLoop(video);
-  } else {
-    video.addEventListener('loadeddata', function onLoaded(){
-      video.removeEventListener('loadeddata', onLoaded);
-      scanLoop(video);
-    });
-    // Fallback poll for iOS which sometimes doesn't fire loadeddata
-    setTimeout(function(){
-      if (scanning && video.videoWidth > 0) scanLoop(video);
-    }, 1500);
-  }
-}
-
-function scanLoop(video) {
-  if (!scanning) return;
-
-  if (!video.videoWidth || video.readyState < 2) {
-    rafId = requestAnimationFrame(function(){ scanLoop(video); });
-    return;
-  }
-
-  // Downscale to max 640px wide for performance
-  var scale = Math.min(1, 640 / video.videoWidth);
-  var w = Math.round(video.videoWidth  * scale);
-  var h = Math.round(video.videoHeight * scale);
-
-  if (scanCanvas.width !== w || scanCanvas.height !== h) {
-    scanCanvas.width  = w;
-    scanCanvas.height = h;
-  }
-
-  try {
-    scanCtx.drawImage(video, 0, 0, w, h);
-
-    // jsQR — works on all browsers including iOS Safari
-    var imageData = scanCtx.getImageData(0, 0, w, h);
-    var result    = jsQR(imageData.data, w, h, { inversionAttempts: 'dontInvert' });
-    if (result && result.data) {
-      processCode(result.data);
-    }
-
-    // BarcodeDetector as bonus — available on Android Chrome / desktop
-    // Do NOT use on iOS (it doesn't exist)
-    if (!IS_IOS && window.BarcodeDetector) {
-      new BarcodeDetector({ formats: ['qr_code'] })
-        .detect(scanCanvas)
-        .then(function(r){ if (r.length) processCode(r[0].rawValue); })
-        .catch(function(){});
-    }
-  } catch(e) {}
-
-  rafId = requestAnimationFrame(function(){ scanLoop(video); });
-}
-
-function stopCamera() {
-  scanning = false;
-  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-  if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
-  var video = document.getElementById('scanner-video');
-  video.srcObject = null;
-  document.getElementById('start-btn').disabled = false;
-  document.getElementById('stop-btn').disabled  = true;
-}
-
-async function processCode(raw) {
-  var now = Date.now();
-  if (raw === lastCode && now - lastTime < 3000) return;
-  lastCode = raw; lastTime = now;
-
-  var code = codes.find(function(c){ return c.code_id === raw; });
-  if (!code) { showResult('fail','✕','INVALID CODE','Not in this session'); addLog(raw,false,'Invalid code'); return; }
-  if (usedSet.has(raw)) { showResult('fail','!','ALREADY USED','Guest #'+code.num+' already entered'); addLog(raw,false,'Guest #'+code.num+' – already scanned'); return; }
-
-  var res = await sb.from('codes').update({used_at:new Date().toISOString()}).eq('code_id',raw).eq('session_id',SESSION_ID);
-  if (res.error) { showResult('fail','!','DB ERROR',res.error.message); return; }
-
+// ── PROCESS SCANNED CODE ─────────────────────────
+async function processCode(raw){
+  var code=codes.find(function(c){return c.code_id===raw;});
+  if(!code){showResult('fail','✕','INVALID CODE','Not registered in this session');addLog(raw,false,'Invalid code');return;}
+  if(usedSet.has(raw)){showResult('fail','!','ALREADY USED','Guest #'+code.num+' already entered');addLog(raw,false,'Guest #'+code.num+' – already scanned');return;}
+  var res=await sb.from('codes').update({used_at:new Date().toISOString()}).eq('code_id',raw).eq('session_id',SESSION_ID);
+  if(res.error){showResult('fail','!','DB ERROR',res.error.message);return;}
   usedSet.add(raw);
-  var idx = codes.findIndex(function(c){ return c.code_id===raw; });
-  if (idx!==-1) codes[idx].used_at = new Date().toISOString();
+  var idx=codes.findIndex(function(c){return c.code_id===raw;});
+  if(idx!==-1) codes[idx].used_at=new Date().toISOString();
   updateStats();
   showResult('ok','✓','WELCOME!','Guest #'+code.num+' – Enjoy the celebration!');
   addLog(raw,true,'Guest #'+code.num+' admitted');
 }
 
-function showResult(type,icon,title,sub) {
+function showResult(type,icon,title,sub){
   var box=document.getElementById('result-box');
   box.className='result-box '+type;
-  box.innerHTML='<div class="result-icon">'+icon+'</div><div class="result-title">'+title+'</div><div class="result-sub">'+sub+'</div>';
+  box.innerHTML='<div class="ri">'+icon+'</div><div class="rt">'+title+'</div><div class="rs">'+sub+'</div>';
   setTimeout(function(){
     box.className='result-box';
-    box.innerHTML='<div class="result-icon">&#9671;</div><div class="result-title">READY</div><div class="result-sub">Point camera at a guest QR code</div>';
-  },3000);
+    box.innerHTML='<div class="ri">&#9671;</div><div class="rt">READY</div><div class="rs">Tap the button above to scan a guest\'s code</div>';
+  },4000);
 }
 
-function addLog(code,ok,msg) {
+function addLog(code,ok,msg){
   var time=new Date().toLocaleTimeString(); scanLog.unshift({code,ok,msg,time});
   var list=document.getElementById('log-list');
-  var item=document.createElement('div'); item.className='log-item';
-  item.innerHTML='<span class="log-dot '+(ok?'ok':'fail')+'"></span><span>'+msg+'</span><span class="log-time">'+time+'</span>';
-  if(list.querySelector('.log-empty')) list.innerHTML='';
+  var item=document.createElement('div'); item.className='li';
+  item.innerHTML='<span class="ldot '+(ok?'ok':'fail')+'"></span><span>'+msg+'</span><span class="ltime">'+time+'</span>';
+  if(list.querySelector('.lempty')) list.innerHTML='';
   list.prepend(item);
-  if(list.children.length>30) list.removeChild(list.lastChild);
+  if(list.children.length>40) list.removeChild(list.lastChild);
 }
 
-function manualCheck() {
+function manualCheck(){
   var val=document.getElementById('manual-code').value.trim().toUpperCase();
   if(!val) return; processCode(val); document.getElementById('manual-code').value='';
 }
 
-function updateStats() {
-  document.getElementById('stat-total').textContent     = codes.length;
-  document.getElementById('stat-scanned').textContent   = usedSet.size;
-  document.getElementById('stat-remaining').textContent = codes.length - usedSet.size;
+function updateStats(){
+  document.getElementById('stat-total').textContent=codes.length;
+  document.getElementById('stat-scanned').textContent=usedSet.size;
+  document.getElementById('stat-remaining').textContent=codes.length-usedSet.size;
 }
 
-// ── MANAGE ────────────────────────────────────────────
-function renderManage(filter) {
+// ── MANAGE ──────────────────────────────────────
+function renderManage(filter){
   var list=document.getElementById('manage-list');
-  if(!codes.length){ list.innerHTML='<div class="empty-state"><div class="empty-icon">&#9671;</div><div>No codes generated yet</div></div>'; return; }
+  if(!codes.length){list.innerHTML='<div class="empty-state"><div class="ei">&#9671;</div><div>No codes generated yet</div></div>';return;}
   var shown=codes;
-  if(filter==='used')   shown=codes.filter(function(c){ return  usedSet.has(c.code_id); });
-  if(filter==='unused') shown=codes.filter(function(c){ return !usedSet.has(c.code_id); });
-  document.getElementById('manage-count').textContent='Showing '+shown.length+' of '+codes.length;
+  if(filter==='used')   shown=codes.filter(function(c){return  usedSet.has(c.code_id);});
+  if(filter==='unused') shown=codes.filter(function(c){return !usedSet.has(c.code_id);});
+  document.getElementById('mc').textContent='Showing '+shown.length+' of '+codes.length;
   list.innerHTML=shown.map(function(c){
     var u=usedSet.has(c.code_id);
-    return '<div class="manage-item">'
-      +'<span class="manage-num">#'+c.num+'</span>'
-      +'<span class="manage-code">'+c.code_id+'</span>'
-      +'<span class="badge '+(u?'badge-used':'badge-unused')+'">'+(u?'USED':'UNUSED')+'</span>'
-      +(u?'<button class="btn btn-outline btn-sm" onclick="resetOne(\''+c.code_id+'\')">Reset</button>':'')
+    return '<div class="mi"><span class="mnum">#'+c.num+'</span><span class="mcode">'+c.code_id+'</span>'
+      +'<span class="badge '+(u?'bu':'bn')+'">'+(u?'USED':'UNUSED')+'</span>'
+      +(u?'<button class="btn btn-out btn-sm" onclick="resetOne(\''+c.code_id+'\')">Reset</button>':'')
       +'</div>';
   }).join('');
 }
 
-async function resetOne(codeId) {
-  await sb.from('codes').update({used_at:null}).eq('code_id',codeId).eq('session_id',SESSION_ID);
-  usedSet.delete(codeId);
-  var idx=codes.findIndex(function(c){ return c.code_id===codeId; });
+async function resetOne(id){
+  await sb.from('codes').update({used_at:null}).eq('code_id',id).eq('session_id',SESSION_ID);
+  usedSet.delete(id);
+  var idx=codes.findIndex(function(c){return c.code_id===id;});
   if(idx!==-1) codes[idx].used_at=null;
   updateStats(); renderManage('all');
 }
 
-async function resetAllUsed() {
-  if(!confirm('Reset ALL used codes in this session?')) return;
+async function resetAllUsed(){
+  if(!confirm('Reset ALL used codes?')) return;
   await sb.from('codes').update({used_at:null}).eq('session_id',SESSION_ID);
-  usedSet=new Set(); scanLog=[]; codes.forEach(function(c){ c.used_at=null; });
+  usedSet=new Set(); scanLog=[]; codes.forEach(function(c){c.used_at=null;});
   updateStats(); renderManage('all');
-  document.getElementById('log-list').innerHTML='<div class="log-empty">No scans yet</div>';
+  document.getElementById('log-list').innerHTML='<div class="lempty">No scans yet</div>';
 }
 
-// ── UTILS ─────────────────────────────────────────────
-function setSyncStatus(state,text){ document.getElementById('sync-dot').className='sync-dot '+state; document.getElementById('sync-text').textContent=text; }
-function hash(str){ var h=0; for(var i=0;i<str.length;i++) h=Math.imul(31,h)+str.charCodeAt(i)|0; return 'h'+Math.abs(h).toString(16); }
+// ── UTILS ────────────────────────────────────────
+function setSS(s,t){document.getElementById('sdot').className='sdot '+s;document.getElementById('stxt').textContent=t;}
+function hash(str){var h=0;for(var i=0;i<str.length;i++)h=Math.imul(31,h)+str.charCodeAt(i)|0;return 'h'+Math.abs(h).toString(16);}
 
-// ── AUTO-RESUME ───────────────────────────────────────
-(async function init(){
-  if(!CONFIGURED) return;
+// ── AUTO-RESUME ──────────────────────────────────
+(async function(){
   var saved=localStorage.getItem('wqr_session');
   if(!saved) return;
   try{
@@ -987,7 +797,7 @@ function hash(str){ var h=0; for(var i=0;i<str.length;i++) h=Math.imul(31,h)+str
     var res=await sb.from('sessions').select('id,name').eq('id',s.id).maybeSingle();
     if(res.data) enterApp(res.data.id,res.data.name);
     else localStorage.removeItem('wqr_session');
-  }catch(e){ localStorage.removeItem('wqr_session'); }
+  }catch(e){localStorage.removeItem('wqr_session');}
 })();
 </script>
 </body>
