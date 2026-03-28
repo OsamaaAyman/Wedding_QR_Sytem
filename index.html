@@ -17,7 +17,7 @@
   --nav:56px;--bot:64px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{-webkit-text-size-adjust:100%;height:100%;}
+html{-webkit-text-size-adjust:100%;height:100%;overflow-x:hidden;}
 body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--paper);min-height:100%;overflow-x:hidden;}
 
 /* ── LOGIN ─────────────────────────────── */
@@ -63,7 +63,6 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 .topbar{background:var(--ink-mid);border-bottom:1px solid var(--gold-border);display:flex;align-items:center;padding:0 14px;height:var(--nav);position:sticky;top:0;z-index:40;}
 .topbar-brand{font-family:'Cinzel',serif;color:var(--gold);font-size:.75rem;letter-spacing:3px;display:flex;align-items:center;gap:8px;flex:1;}
 .spill{background:rgba(200,169,110,.12);border:1px solid var(--gold-border);color:var(--gold-dim);font-size:.58rem;letter-spacing:1px;padding:3px 8px;border-radius:20px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Cinzel',serif;}
-/* Desktop tabs — hidden on mobile */
 .dtabs{display:flex;}
 .dtab{padding:0 14px;height:var(--nav);background:none;border:none;cursor:pointer;font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:1.5px;color:var(--text-muted);transition:all .2s;border-bottom:2px solid transparent;white-space:nowrap;display:flex;align-items:center;}
 .dtab:hover{color:var(--paper);}
@@ -74,9 +73,8 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 /* ── BOTTOM NAV ────────────────────────── */
 .bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--ink-mid);border-top:1px solid var(--gold-border);height:var(--bot);padding-bottom:env(safe-area-inset-bottom,0);z-index:40;}
 .bnav-inner{display:grid;grid-template-columns:repeat(3,1fr);height:100%;}
-.bnav-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 4px;color:var(--text-muted);transition:all .2s;border-top:2px solid transparent;position:relative;}
+.bnav-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 4px;color:var(--text-muted);transition:all .2s;border-top:2px solid transparent;}
 .bnav-btn.active{color:var(--gold);border-top-color:var(--gold);}
-/* SVG icons for bottom nav */
 .bnav-icon{width:22px;height:22px;flex-shrink:0;}
 .bnav-label{font-family:'Cinzel',serif;font-size:.52rem;letter-spacing:1.5px;}
 @media(max-width:600px){.bnav{display:block;}.main{padding-bottom:calc(var(--bot) + env(safe-area-inset-bottom,0) + 10px)!important;}}
@@ -120,31 +118,49 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 .qi canvas,.qi img{width:104px!important;height:104px!important;max-width:100%!important;}
 .qlbl{font-size:.58rem;color:var(--text-muted);margin-top:4px;font-family:'Cinzel',serif;letter-spacing:1px;}
 
-/* ── SCANNER ───────────────────────────── */
-/* The entire scanner is a single big tap target on mobile */
-.scan-hero{
-  position:relative;
-  background:var(--ink-soft);
-  border:2px dashed var(--gold-border);
-  border-radius:12px;
-  padding:36px 20px;
-  text-align:center;
-  cursor:pointer;
-  transition:border-color .2s, background .2s;
-  -webkit-tap-highlight-color:transparent;
-  user-select:none;
+/* ══════════════════════════════════════════
+   SCANNER — works on iOS + Android
+   Strategy:
+   1. getUserMedia live video with requestAnimationFrame (Android Chrome, desktop)
+   2. If getUserMedia fails → fall back to file input (iOS Safari)
+   Both use jsQR + BarcodeDetector (where available)
+═══════════════════════════════════════════ */
+.scan-section{margin-bottom:14px;}
+
+/* Live video scanner */
+#video-wrap{
+  position:relative;background:#000;border-radius:10px;overflow:hidden;
+  aspect-ratio:1/1;border:2px solid var(--gold-border);display:none;
 }
-.scan-hero:active{background:rgba(200,169,110,.08);border-color:var(--gold);}
-.scan-hero-icon{margin:0 auto 16px;}
-.scan-hero-title{font-family:'Cinzel',serif;font-size:1.1rem;letter-spacing:3px;color:var(--gold);margin-bottom:6px;}
-.scan-hero-sub{font-size:.85rem;color:var(--text-muted);line-height:1.6;}
-/* Hidden file input sits over the whole hero */
-#camera-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0;}
+#scan-video{width:100%;height:100%;object-fit:cover;display:block;}
+.scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.scan-frame{width:62%;aspect-ratio:1;border:2px solid var(--gold);border-radius:6px;position:relative;animation:pls 2s ease-in-out infinite;}
+.scan-frame::before,.scan-frame::after,.scan-frame>span::before,.scan-frame>span::after{content:'';position:absolute;width:20px;height:20px;border-color:var(--gold);border-style:solid;}
+.scan-frame::before{top:-2px;left:-2px;border-width:3px 0 0 3px;}
+.scan-frame::after{top:-2px;right:-2px;border-width:3px 3px 0 0;}
+.scan-frame>span::before{bottom:-2px;left:-2px;border-width:0 0 3px 3px;}
+.scan-frame>span::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0;}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:sl 2s linear infinite;}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes sl{0%{top:5%}100%{top:95%}}
 
-/* feedback flash after scan */
-.scan-hero.scanning{border-color:var(--gold);background:rgba(200,169,110,.06);}
+/* Tap-to-scan hero (iOS fallback + initial state) */
+.scan-hero{
+  position:relative;background:var(--ink-soft);border:2px dashed var(--gold-border);
+  border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;
+  transition:border-color .2s,background .2s;-webkit-tap-highlight-color:transparent;
+  user-select:none;margin-bottom:0;
+}
+.scan-hero:active,.scan-hero.active{background:rgba(200,169,110,.08);border-color:var(--gold);}
+.sh-icon{margin:0 auto 14px;}
+.sh-title{font-family:'Cinzel',serif;font-size:1rem;letter-spacing:3px;color:var(--gold);margin-bottom:6px;}
+.sh-sub{font-size:.82rem;color:var(--text-muted);line-height:1.6;}
+/* invisible file input over the whole hero — for iOS */
+#file-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0;}
 
-.result-box{border-radius:var(--r);padding:22px 14px;text-align:center;min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;border:2px solid var(--gold-border);background:var(--ink-soft);transition:all .25s;margin-top:14px;}
+.scan-btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+
+.result-box{border-radius:var(--r);padding:20px 14px;text-align:center;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;border:2px solid var(--gold-border);background:var(--ink-soft);transition:all .25s;margin-top:12px;}
 .result-box.ok{background:var(--ok-bg);border-color:var(--ok);animation:fok .3s;}
 .result-box.fail{background:var(--fail-bg);border-color:var(--fail);animation:ffail .3s;}
 @keyframes fok{from{background:#b0f0cc}to{background:var(--ok-bg)}}
@@ -155,7 +171,7 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 .result-box.fail .rt{color:var(--fail);}
 .rs{font-size:.8rem;color:var(--text-muted);}
 
-.manual-row{display:flex;gap:8px;margin-top:14px;}
+.manual-row{display:flex;gap:8px;margin-top:12px;}
 .manual-row input{flex:1;padding:10px 12px;background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:4px;color:var(--paper);font-family:'EB Garamond',serif;font-size:1rem;outline:none;}
 .manual-row input:focus{border-color:var(--gold);}
 
@@ -194,7 +210,7 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 ::-webkit-scrollbar-thumb{background:var(--gold-border);border-radius:3px;}
 
 @media print{
-  #login-screen,.topbar,.bnav,.syncbar,.brow,.manual-row,#prog-ov{display:none!important}
+  #login-screen,.topbar,.bnav,.syncbar,.brow,.manual-row,#prog-ov,.scan-section,.scan-btn-row{display:none!important}
   body{background:white;color:black;}
   .main{padding:0!important;}
   .page{display:block!important;}
@@ -210,11 +226,10 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
   <div class="lw">
     <div class="lcrest">
       <div class="lcrest-line">
-        <!-- small ring ornament -->
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
           <circle cx="14" cy="14" r="5.5" stroke="#c8a96e" stroke-width="1.2"/>
           <circle cx="14" cy="14" r="10" stroke="#c8a96e" stroke-width=".5" stroke-dasharray="2 2"/>
-          <path d="M14 3 L14 1 M14 25 L14 27 M3 14 L1 14 M25 14 L27 14" stroke="#c8a96e" stroke-width=".8"/>
+          <path d="M14 3L14 1M14 25L14 27M3 14L1 14M25 14L27 14" stroke="#c8a96e" stroke-width=".8"/>
         </svg>
       </div>
       <div class="ltitle">WEDDING QR</div>
@@ -248,15 +263,13 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 <div id="app">
   <div class="topbar">
     <div class="topbar-brand">
-      <!-- ring logo -->
-      <svg width="18" height="18" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+      <svg width="18" height="18" viewBox="0 0 28 28" fill="none" style="flex-shrink:0">
         <circle cx="14" cy="14" r="5.5" stroke="#c8a96e" stroke-width="1.5"/>
         <circle cx="14" cy="14" r="10" stroke="#c8a96e" stroke-width=".6" stroke-dasharray="2.5 2"/>
       </svg>
       WEDDING QR
       <span class="spill" id="session-pill">&#8212;</span>
     </div>
-    <!-- desktop tabs -->
     <div class="dtabs">
       <button class="dtab active" onclick="showPage('gen',this)">Generate</button>
       <button class="dtab"        onclick="showPage('scan',this)">Scanner</button>
@@ -302,7 +315,7 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
       <div class="ph">
         <div class="orn">&#10022; &#10022; &#10022;</div>
         <h1>Guest Scanner</h1>
-        <p>Tap the button below to scan &mdash; each code works once</p>
+        <p>Scan QR codes at the entrance &mdash; each code works once</p>
       </div>
 
       <div class="sgrid">
@@ -311,39 +324,45 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
         <div class="scard"><span class="snum" id="stat-remaining">0</span><div class="slbl">Remaining</div></div>
       </div>
 
-      <!-- The big scan button — opens native camera on iPhone -->
+      <!-- Live video (shown when getUserMedia works — Android/desktop) -->
+      <div id="video-wrap">
+        <video id="scan-video" autoplay playsinline muted></video>
+        <div class="scan-overlay">
+          <div class="scan-frame"><span></span><div class="scan-line"></div></div>
+        </div>
+      </div>
+
+      <!-- Tap hero (shown initially; iOS uses file-input; Android uses live camera) -->
       <div class="scan-hero" id="scan-hero">
-        <!-- camera + QR themed SVG icon -->
-        <div class="scan-hero-icon">
-          <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- outer rounded rect (camera body) -->
+        <div class="sh-icon">
+          <svg width="64" height="64" viewBox="0 0 72 72" fill="none">
             <rect x="6" y="16" width="60" height="44" rx="7" stroke="#c8a96e" stroke-width="2" fill="none"/>
-            <!-- lens circle -->
             <circle cx="36" cy="38" r="13" stroke="#c8a96e" stroke-width="1.8" fill="none"/>
             <circle cx="36" cy="38" r="7"  stroke="#c8a96e" stroke-width="1.2" fill="none"/>
-            <!-- viewfinder dot -->
             <circle cx="36" cy="38" r="2.2" fill="#c8a96e"/>
-            <!-- top bump (shutter) -->
             <path d="M28 16 Q28 10 34 10 L38 10 Q44 10 44 16" stroke="#c8a96e" stroke-width="1.8" fill="none"/>
-            <!-- corner frame marks (QR style) -->
-            <path d="M14 24 L14 20 L18 20" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M54 24 L54 20 L50 20" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M14 52 L14 56 L18 56" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M54 52 L54 56 L50 56" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
-            <!-- small flash indicator -->
-            <circle cx="57" cy="28" r="3.5" stroke="#c8a96e" stroke-width="1.2" fill="none"/>
+            <path d="M14 24L14 20L18 20" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M54 24L54 20L50 20" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M14 52L14 56L18 56" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M54 52L54 56L50 56" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
         </div>
-        <div class="scan-hero-title">TAP TO SCAN</div>
-        <div class="scan-hero-sub">Opens your iPhone camera<br>Point at the guest&rsquo;s QR card &amp; take a photo</div>
-        <!-- This is the actual file input — invisible, covers the whole box -->
-        <input type="file" id="camera-input" accept="image/*" capture="environment">
+        <div class="sh-title" id="hero-title">TAP TO START CAMERA</div>
+        <div class="sh-sub" id="hero-sub">Opens live camera for continuous scanning</div>
+        <!-- iOS file fallback — only active when live camera is unavailable -->
+        <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none">
+      </div>
+
+      <div class="scan-btn-row">
+        <button class="btn btn-gold" id="btn-start" onclick="startScanner()">&#9654; Start Camera</button>
+        <button class="btn btn-out"  id="btn-stop"  onclick="stopScanner()" style="display:none">&#9632; Stop</button>
+        <button class="btn btn-out"  id="btn-photo" onclick="triggerPhotoFallback()" style="display:none">&#128247; Scan Photo</button>
       </div>
 
       <div class="result-box" id="result-box">
         <div class="ri">&#9671;</div>
         <div class="rt">READY</div>
-        <div class="rs">Tap the button above to scan a guest&rsquo;s code</div>
+        <div class="rs">Press Start Camera to begin scanning</div>
       </div>
 
       <div class="manual-row">
@@ -380,54 +399,41 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 
   </div><!-- /main -->
 
-  <!-- BOTTOM NAV (mobile) -->
+  <!-- BOTTOM NAV -->
   <nav class="bnav" id="bnav">
     <div class="bnav-inner">
-
-      <!-- Generate tab: diamond/sparkle icon -->
       <button class="bnav-btn active" id="bnav-gen" onclick="navTo('gen',this)">
-        <svg class="bnav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2 L14.5 9.5 L22 12 L14.5 14.5 L12 22 L9.5 14.5 L2 12 L9.5 9.5 Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>
+        <svg class="bnav-icon" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>
           <circle cx="12" cy="12" r="2" fill="currentColor" opacity=".4"/>
         </svg>
         <span class="bnav-label">GENERATE</span>
       </button>
-
-      <!-- Scanner tab: camera + ring icon -->
       <button class="bnav-btn" id="bnav-scan" onclick="navTo('scan',this)">
-        <svg class="bnav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- camera body -->
+        <svg class="bnav-icon" viewBox="0 0 24 24" fill="none">
           <rect x="2" y="6" width="20" height="14" rx="2.5" stroke="currentColor" stroke-width="1.4" fill="none"/>
-          <!-- lens -->
           <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="1.4" fill="none"/>
           <circle cx="12" cy="13" r="1.5" fill="currentColor" opacity=".5"/>
-          <!-- shutter bump -->
-          <path d="M9 6 Q9 3.5 10.5 3.5 L13.5 3.5 Q15 3.5 15 6" stroke="currentColor" stroke-width="1.4" fill="none"/>
-          <!-- corner ticks (QR reference) -->
-          <path d="M5 8.5 L5 7 L6.5 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-          <path d="M19 8.5 L19 7 L17.5 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M9 6Q9 3.5 10.5 3.5L13.5 3.5Q15 3.5 15 6" stroke="currentColor" stroke-width="1.4" fill="none"/>
+          <path d="M5 8.5L5 7L6.5 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M19 8.5L19 7L17.5 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
         </svg>
         <span class="bnav-label">SCANNER</span>
       </button>
-
-      <!-- Manage tab: list with diamond bullets -->
       <button class="bnav-btn" id="bnav-manage" onclick="navTo('manage',this)">
-        <svg class="bnav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- three rows -->
+        <svg class="bnav-icon" viewBox="0 0 24 24" fill="none">
           <line x1="9" y1="6"  x2="20" y2="6"  stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
           <line x1="9" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
           <line x1="9" y1="18" x2="20" y2="18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-          <!-- diamond bullets -->
-          <path d="M4 6 L5.2 7.2 L4 8.4 L2.8 7.2 Z" fill="currentColor"/>
-          <path d="M4 12 L5.2 13.2 L4 14.4 L2.8 13.2 Z" fill="currentColor"/>
-          <path d="M4 18 L5.2 19.2 L4 20.4 L2.8 19.2 Z" fill="currentColor"/>
+          <path d="M4 6L5.2 7.2L4 8.4L2.8 7.2Z" fill="currentColor"/>
+          <path d="M4 12L5.2 13.2L4 14.4L2.8 13.2Z" fill="currentColor"/>
+          <path d="M4 18L5.2 19.2L4 20.4L2.8 19.2Z" fill="currentColor"/>
         </svg>
         <span class="bnav-label">MANAGE</span>
       </button>
-
     </div>
   </nav>
-</div><!-- /app -->
+</div>
 
 <div id="prog-ov">
   <div class="pc">
@@ -439,11 +445,10 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 
 <script>
 // ══════════════════════════════════════════════
-//  CONFIG
+//  CONFIG — Supabase
 // ══════════════════════════════════════════════
 var SUPABASE_URL      = 'https://pyfinjrjvkudyfteelkw.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5ZmluanJqdmt1ZHlmdGVlbGt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0ODk1MjQsImV4cCI6MjA5MDA2NTUyNH0.unWUjfa883HFkzaZgoOYHyMGs_7eXPkOD71EokomWLA';
-
 var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ── STATE ──────────────────────────────────────
@@ -451,67 +456,214 @@ var SESSION_ID=null, SESSION_NAME=null;
 var codes=[], usedSet=new Set(), scanLog=[], realtimeSub=null;
 
 // ══════════════════════════════════════════════
-//  CAMERA INPUT — iPhone-native approach
-//  Uses <input type="file" capture="environment">
-//  which opens iOS native camera directly.
-//  No getUserMedia, no canvas stream, no RAF loop.
-//  Just: take photo → decode with jsQR → done.
+//  SCANNER — Dual-strategy
+//  Strategy A: getUserMedia live video + RAF loop
+//             Works on: Android Chrome, desktop Chrome/Firefox/Safari
+//  Strategy B: <input type=file capture=environment>
+//             Works on: iOS Safari (when getUserMedia is blocked or on older iOS)
+//  We try A first. If it fails we show the photo button (Strategy B).
+//  Both decode with BarcodeDetector (fast, native) then jsQR (fallback).
 // ══════════════════════════════════════════════
-document.getElementById('camera-input').addEventListener('change', function(e){
-  var file = e.target.files && e.target.files[0];
-  if (!file) return;
+var scanStream = null;
+var scanActive = false;
+var scanRafId  = null;
+var usingLive  = false; // true = live video mode, false = photo mode
 
-  // Visual feedback
-  document.getElementById('scan-hero').classList.add('scanning');
+function startScanner(){
+  if(scanActive) return;
+
+  // Try live video first
+  if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+    navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: 'environment' },
+        width:  { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    })
+    .then(function(stream){
+      scanStream = stream;
+      usingLive  = true;
+      scanActive = true;
+
+      var video = document.getElementById('scan-video');
+      video.srcObject = stream;
+      video.play();
+
+      document.getElementById('video-wrap').style.display = 'block';
+      document.getElementById('scan-hero').style.display  = 'none';
+      document.getElementById('btn-start').style.display  = 'none';
+      document.getElementById('btn-stop').style.display   = 'inline-flex';
+      document.getElementById('btn-photo').style.display  = 'none';
+
+      showResult('','&#9671;','SCANNING','Point camera at guest QR code');
+      rafScan();
+    })
+    .catch(function(err){
+      // Live camera failed — switch to photo mode
+      console.warn('Live camera failed:', err.message);
+      activatePhotoMode();
+    });
+  } else {
+    activatePhotoMode();
+  }
+}
+
+function activatePhotoMode(){
+  usingLive  = false;
+  scanActive = false;
+
+  document.getElementById('video-wrap').style.display = 'none';
+  document.getElementById('scan-hero').style.display  = 'block';
+  document.getElementById('file-input').style.display = 'block';
+  document.getElementById('btn-start').style.display  = 'none';
+  document.getElementById('btn-stop').style.display   = 'none';
+  document.getElementById('btn-photo').style.display  = 'inline-flex';
+
+  document.getElementById('hero-title').textContent = 'TAP TO SCAN';
+  document.getElementById('hero-sub').textContent   = 'Opens your camera — point at the guest\'s QR code';
+
+  // Make the whole hero trigger the file input too
+  document.getElementById('scan-hero').onclick = function(){ document.getElementById('file-input').click(); };
+  showResult('','&#9671;','READY','Tap the camera button to scan a QR code');
+}
+
+function stopScanner(){
+  scanActive = false;
+  if(scanRafId){ cancelAnimationFrame(scanRafId); scanRafId=null; }
+  if(scanStream){ scanStream.getTracks().forEach(function(t){t.stop();}); scanStream=null; }
+
+  var video = document.getElementById('scan-video');
+  video.srcObject = null;
+
+  document.getElementById('video-wrap').style.display = 'none';
+  document.getElementById('scan-hero').style.display  = 'block';
+  document.getElementById('btn-start').style.display  = 'inline-flex';
+  document.getElementById('btn-stop').style.display   = 'none';
+  document.getElementById('btn-photo').style.display  = 'none';
+  document.getElementById('file-input').style.display = 'none';
+
+  document.getElementById('hero-title').textContent = 'TAP TO START CAMERA';
+  document.getElementById('hero-sub').textContent   = 'Opens live camera for continuous scanning';
+  document.getElementById('scan-hero').onclick = null;
+  showResult('','&#9671;','STOPPED','Press Start Camera to begin scanning again');
+}
+
+function triggerPhotoFallback(){
+  document.getElementById('file-input').click();
+}
+
+// ── RAF LOOP — live video decoding ──────────────
+function rafScan(){
+  if(!scanActive){ return; }
+  var video = document.getElementById('scan-video');
+  if(video.readyState >= 2){
+    decodeFrame(video, function(result){
+      if(result) processCode(result);
+    });
+  }
+  scanRafId = requestAnimationFrame(rafScan);
+}
+
+// ── FILE INPUT — photo decoding (iOS) ───────────
+document.getElementById('file-input').addEventListener('change', function(e){
+  var file = e.target.files && e.target.files[0];
+  if(!file) return;
+
+  document.getElementById('scan-hero').classList.add('active');
 
   var reader = new FileReader();
   reader.onload = function(ev){
     var img = new Image();
     img.onload = function(){
-      // Draw to offscreen canvas and run jsQR
-      var c = document.createElement('canvas');
-      // Scale down very large iPhone photos for jsQR performance (max 1200px)
-      var maxDim = 1200;
-      var scale  = Math.min(1, maxDim / Math.max(img.width, img.height));
-      c.width  = Math.round(img.width  * scale);
-      c.height = Math.round(img.height * scale);
-      var ctx = c.getContext('2d');
-      ctx.drawImage(img, 0, 0, c.width, c.height);
-      var imageData = ctx.getImageData(0, 0, c.width, c.height);
-      var result    = jsQR(imageData.data, c.width, c.height, { inversionAttempts: 'attemptBoth' });
-      if (result && result.data) {
-        processCode(result.data);
-      } else {
-        showResult('fail', '?', 'NOT FOUND', 'No QR code detected — try again, hold steady');
+      // Try multiple scales — iPhone photos are huge, jsQR needs reasonable size
+      var scales = [1.0, 0.75, 0.5, 0.25];
+      var found  = false;
+      for(var si=0; si<scales.length && !found; si++){
+        var sc = scales[si];
+        var maxDim = 1600;
+        var factor = Math.min(sc, maxDim / Math.max(img.width, img.height));
+        var cv = document.createElement('canvas');
+        cv.width  = Math.round(img.width  * factor);
+        cv.height = Math.round(img.height * factor);
+        var ctx = cv.getContext('2d');
+        ctx.drawImage(img, 0, 0, cv.width, cv.height);
+        var imageData = ctx.getImageData(0, 0, cv.width, cv.height);
+        var result = jsQR(imageData.data, cv.width, cv.height, {inversionAttempts:'attemptBoth'});
+        if(result && result.data){
+          processCode(result.data);
+          found = true;
+        }
       }
-      document.getElementById('scan-hero').classList.remove('scanning');
+      if(!found){
+        showResult('fail','?','NOT DETECTED','No QR code found — hold camera steady and try again');
+      }
+      document.getElementById('scan-hero').classList.remove('active');
     };
     img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
-
-  // Reset input so the same file can trigger change again
-  e.target.value = '';
+  e.target.value = ''; // reset so same code can be scanned again
 });
 
-// ── NAV ────────────────────────────────────────
-function showPage(id, btn) {
-  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
-  document.querySelectorAll('.dtab').forEach(function(t){ t.classList.remove('active'); });
-  document.getElementById('page-'+id).classList.add('active');
-  if (btn) btn.classList.add('active');
-  syncBnav(id);
-  if (id==='scan')   updateStats();
-  if (id==='manage') renderManage('all');
+// ── UNIFIED FRAME DECODER ────────────────────────
+// Tries BarcodeDetector first (fast, native on Android Chrome & Safari 17+)
+// then falls back to jsQR.
+// Debounce: same code ignored for 3 seconds to avoid double-scans.
+var _lastRaw = '', _lastRawTime = 0;
+
+function decodeFrame(source, cb){
+  // BarcodeDetector path (Chrome Android, Safari 17+)
+  if(window.BarcodeDetector){
+    try{
+      new BarcodeDetector({formats:['qr_code']}).detect(source).then(function(barcodes){
+        if(barcodes && barcodes.length > 0){
+          var raw = barcodes[0].rawValue;
+          if(raw && !isDupe(raw)){ stamp(raw); cb(raw); }
+        }
+      }).catch(function(){});
+      return;
+    }catch(e){}
+  }
+
+  // jsQR path
+  var cv  = document.createElement('canvas');
+  var w   = source.videoWidth  || source.width  || 640;
+  var h   = source.videoHeight || source.height || 480;
+  // Limit to 800px for jsQR performance
+  var sc  = Math.min(1, 800 / Math.max(w, h));
+  cv.width  = Math.round(w * sc);
+  cv.height = Math.round(h * sc);
+  var ctx = cv.getContext('2d');
+  ctx.drawImage(source, 0, 0, cv.width, cv.height);
+  var id  = ctx.getImageData(0, 0, cv.width, cv.height);
+  var res = jsQR(id.data, cv.width, cv.height, {inversionAttempts:'attemptBoth'});
+  if(res && res.data && !isDupe(res.data)){ stamp(res.data); cb(res.data); }
 }
-function navTo(id, btn) {
-  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
-  document.querySelectorAll('.bnav-btn').forEach(function(b){ b.classList.remove('active'); });
+
+function isDupe(raw){ return raw===_lastRaw && Date.now()-_lastRawTime < 3000; }
+function stamp(raw){ _lastRaw=raw; _lastRawTime=Date.now(); }
+
+// ══════════════════════════════════════════════
+//  NAV
+// ══════════════════════════════════════════════
+function showPage(id, btn){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.dtab').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  syncBnav(id);
+  if(id==='scan')   updateStats();
+  if(id==='manage') renderManage('all');
+}
+function navTo(id, btn){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.bnav-btn').forEach(function(b){b.classList.remove('active');});
   document.getElementById('page-'+id).classList.add('active');
   btn.classList.add('active');
-  document.querySelectorAll('.dtab').forEach(function(t){ t.classList.remove('active'); });
-  if (id==='scan')   updateStats();
-  if (id==='manage') renderManage('all');
+  document.querySelectorAll('.dtab').forEach(function(t){t.classList.remove('active');});
+  if(id==='scan')   updateStats();
+  if(id==='manage') renderManage('all');
 }
 function syncBnav(id){
   ['gen','scan','manage'].forEach(function(x){
@@ -520,7 +672,9 @@ function syncBnav(id){
   });
 }
 
-// ── LOGIN ───────────────────────────────────────
+// ══════════════════════════════════════════════
+//  LOGIN
+// ══════════════════════════════════════════════
 function switchTab(tab){
   document.getElementById('tab-join').classList.toggle('active',   tab==='join');
   document.getElementById('tab-create').classList.toggle('active', tab==='create');
@@ -528,10 +682,10 @@ function switchTab(tab){
   document.getElementById('panel-create').style.display = tab==='create' ? '':'none';
   clrAlerts();
 }
-function showErr(m){ var e=document.getElementById('lerr'); e.textContent=m; e.style.display='block'; document.getElementById('lok').style.display='none'; }
-function showOk(m) { var e=document.getElementById('lok');  e.textContent=m; e.style.display='block'; document.getElementById('lerr').style.display='none'; }
-function clrAlerts(){ document.getElementById('lerr').style.display='none'; document.getElementById('lok').style.display='none'; }
-function btnLd(id,on,lbl){ var b=document.getElementById(id); b.disabled=on; b.textContent=on?'…':lbl; }
+function showErr(m){var e=document.getElementById('lerr');e.textContent=m;e.style.display='block';document.getElementById('lok').style.display='none';}
+function showOk(m) {var e=document.getElementById('lok'); e.textContent=m;e.style.display='block';document.getElementById('lerr').style.display='none';}
+function clrAlerts(){document.getElementById('lerr').style.display='none';document.getElementById('lok').style.display='none';}
+function btnLd(id,on,lbl){var b=document.getElementById(id);b.disabled=on;b.textContent=on?'…':lbl;}
 
 async function doCreate(){
   var name=document.getElementById('create-name').value.trim();
@@ -553,9 +707,7 @@ async function doJoin(){
   if(!name){showErr('Enter the session name.');return;}
   if(!pass){showErr('Enter the password.');return;}
   btnLd('join-btn',true,'▶ Join Session');
-  var res=await sb.from('sessions').select('id,name,password_hash').ilike('name',name).maybySingle ? 
-          await sb.from('sessions').select('id,name,password_hash').ilike('name',name).maybeSingle() :
-          await sb.from('sessions').select('id,name,password_hash').ilike('name',name).maybeSingle();
+  var res=await sb.from('sessions').select('id,name,password_hash').ilike('name',name).maybeSingle();
   if(res.error||!res.data){showErr('Session not found.');btnLd('join-btn',false,'▶ Join Session');return;}
   if(res.data.password_hash!==hash(pass)){showErr('Incorrect password.');btnLd('join-btn',false,'▶ Join Session');return;}
   enterApp(res.data.id,res.data.name);
@@ -588,7 +740,7 @@ function subscribeRT(){
   if(realtimeSub){sb.removeChannel(realtimeSub);realtimeSub=null;}
   realtimeSub=sb.channel('codes-'+SESSION_ID)
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'codes',filter:'session_id=eq.'+SESSION_ID},function(p){
-      var u=p.new, idx=codes.findIndex(function(c){return c.code_id===u.code_id;});
+      var u=p.new,idx=codes.findIndex(function(c){return c.code_id===u.code_id;});
       if(idx!==-1) codes[idx]=u;
       if(u.used_at) usedSet.add(u.code_id); else usedSet.delete(u.code_id);
       updateStats(); setSS('live','Live · '+new Date().toLocaleTimeString());
@@ -603,6 +755,7 @@ function subscribeRT(){
 }
 
 function doLogout(){
+  stopScanner();
   if(realtimeSub){sb.removeChannel(realtimeSub);realtimeSub=null;}
   SESSION_ID=SESSION_NAME=null; codes=[]; usedSet=new Set(); scanLog=[];
   localStorage.removeItem('wqr_session');
@@ -613,7 +766,9 @@ function doLogout(){
   clrAlerts(); switchTab('join');
 }
 
-// ── GENERATE ────────────────────────────────────
+// ══════════════════════════════════════════════
+//  GENERATE
+// ══════════════════════════════════════════════
 function uid(){return 'WED-'+Math.random().toString(36).substr(2,4).toUpperCase()+Math.random().toString(36).substr(2,4).toUpperCase();}
 
 async function generateQRs(){
@@ -646,40 +801,118 @@ function renderGrid(){
     var div=document.createElement('div'); div.className='qi'; div.id='qi-'+c.code_id;
     var qd=document.createElement('div');
     new QRCode(qd,{text:c.code_id,width:108,height:108,colorDark:'#0d0b08',colorLight:'#f7f2e8',correctLevel:QRCode.CorrectLevel.M});
-    var lb=document.createElement('div'); lb.className='qlbl'; lb.textContent='#'+c.num;
-    div.appendChild(qd); div.appendChild(lb); grid.appendChild(div);
+    div.appendChild(qd);
+    grid.appendChild(div);
   });
   document.getElementById('dl-btn').disabled=false;
   document.getElementById('print-btn').disabled=false;
 }
 
-// ── PDF ──────────────────────────────────────────
+// ══════════════════════════════════════════════
+//  PDF — fancy serif fonts via jsPDF + Google Fonts embed
+//  Uses Times-Roman (built-in jsPDF) for elegant look
+// ══════════════════════════════════════════════
 function ldScript(src){return new Promise(function(r,e){var s=document.createElement('script');s.src=src;s.onload=r;s.onerror=e;document.head.appendChild(s);});}
 function slp(ms){return new Promise(function(r){setTimeout(r,ms);});}
 
-function buildCard(doc,c,couple){
-  var W=148,H=210,pad=7;
-  doc.setFillColor(250,246,239); doc.rect(0,0,W,H,'F');
-  doc.setDrawColor(200,169,110); doc.setLineWidth(1.2); doc.rect(pad,pad,W-pad*2,H-pad*2);
-  doc.setLineWidth(0.3); doc.rect(pad+3.5,pad+3.5,W-(pad+3.5)*2,H-(pad+3.5)*2);
-  doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.setTextColor(40,28,8);
-  doc.text(couple,W/2,pad+18,{align:'center'});
-  doc.setDrawColor(200,169,110); doc.setLineWidth(0.5);
-  var lx=W*.2,lw=W*.6; doc.line(lx,pad+23,lx+lw,pad+23);
-  var qSize=82,qX=(W-qSize)/2,qY=pad+28;
-  var qi=document.getElementById('qi-'+c.code_id); var cv=qi?qi.querySelector('canvas'):null;
-  if(cv) doc.addImage(cv.toDataURL('image/png'),'PNG',qX,qY,qSize,qSize);
-  doc.setLineWidth(0.4); doc.rect(qX-1,qY-1,qSize+2,qSize+2);
-  var aQ=qY+qSize+6;
-  doc.line(lx,aQ,lx+lw,aQ);
-  doc.setFont('helvetica','bold'); doc.setFontSize(28); doc.setTextColor(40,28,8);
-  doc.text('Guest  #'+c.num,W/2,aQ+14,{align:'center'});
-  doc.setFont('courier','bold'); doc.setFontSize(13); doc.setTextColor(140,110,60);
-  doc.text(c.code_id,W/2,aQ+24,{align:'center'});
-  doc.setFont('helvetica','italic'); doc.setFontSize(12); doc.setTextColor(100,80,40);
-  doc.text('Please present this card at the entrance',W/2,aQ+35,{align:'center'});
-  doc.setFont('helvetica','normal'); doc.setFontSize(14); doc.setTextColor(200,169,110);
-  doc.text('\u2665   \u2665   \u2665',W/2,H-pad-6,{align:'center'});
+function buildCard(doc, c, couple){
+  var W=148, H=210;
+
+  // Cream background
+  doc.setFillColor(247, 242, 232);
+  doc.rect(0, 0, W, H, 'F');
+
+  // Outer decorative border (double line)
+  doc.setDrawColor(180, 145, 80);
+  doc.setLineWidth(1.4);
+  doc.rect(6, 6, W-12, H-12);
+  doc.setLineWidth(0.35);
+  doc.rect(9.5, 9.5, W-19, H-19);
+
+  // Corner ornament dots
+  var cd = [[6,6],[W-6,6],[6,H-6],[W-6,H-6]];
+  doc.setFillColor(180,145,80);
+  cd.forEach(function(pt){ doc.circle(pt[0], pt[1], 1.2, 'F'); });
+
+  // ── Couple Name — large elegant serif ──
+  doc.setFont('times', 'italic');
+  doc.setFontSize(20);
+  doc.setTextColor(35, 22, 6);
+  doc.text(couple, W/2, 24, {align:'center'});
+
+  // Ornamental rule under name
+  doc.setDrawColor(180,145,80);
+  doc.setLineWidth(0.4);
+  var rx = W*0.18;
+  doc.line(rx, 28, W-rx, 28);
+  // Small diamond in center of rule
+  doc.setFillColor(180,145,80);
+  var dm = [[W/2,26],[W/2+2.5,28],[W/2,30],[W/2-2.5,28]];
+  doc.triangle(dm[0][0],dm[0][1], dm[1][0],dm[1][1], dm[2][0],dm[2][1], 'F');
+  doc.triangle(dm[0][0],dm[0][1], dm[3][0],dm[3][1], dm[2][0],dm[2][1], 'F');
+
+  // ── QR Code ──
+  var qSize = 86;
+  var qX    = (W - qSize) / 2;
+  var qY    = 33;
+  var qi    = document.getElementById('qi-'+c.code_id);
+  var cv    = qi ? qi.querySelector('canvas') : null;
+  if(cv){
+    // Thin gold frame around QR
+    doc.setDrawColor(180,145,80);
+    doc.setLineWidth(0.6);
+    doc.rect(qX-2, qY-2, qSize+4, qSize+4);
+    doc.addImage(cv.toDataURL('image/png'), 'PNG', qX, qY, qSize, qSize);
+  }
+
+  var aQ = qY + qSize + 6;
+
+  // Ornamental rule above guest number
+  doc.setDrawColor(180,145,80);
+  doc.setLineWidth(0.4);
+  doc.line(rx, aQ, W-rx, aQ);
+
+  // ── Guest number — large roman numerals style ──
+  doc.setFont('times', 'bold');
+  doc.setFontSize(22);
+  doc.setTextColor(35, 22, 6);
+  doc.text('Guest  ' + toRoman(c.num), W/2, aQ+13, {align:'center'});
+
+  // Arabic numeral subtitle
+  doc.setFont('times', 'italic');
+  doc.setFontSize(10);
+  doc.setTextColor(120, 90, 40);
+  doc.text('No. ' + c.num, W/2, aQ+20, {align:'center'});
+
+  // Code reference
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(150, 120, 70);
+  doc.text(c.code_id, W/2, aQ+28, {align:'center'});
+
+  // Instruction line
+  doc.setFont('times', 'italic');
+  doc.setFontSize(8.5);
+  doc.setTextColor(100, 75, 35);
+  doc.text('Please present upon arrival at the entrance', W/2, aQ+37, {align:'center'});
+
+  // Bottom ornament — floral motif using text chars
+  doc.setFont('times', 'normal');
+  doc.setFontSize(13);
+  doc.setTextColor(180,145,80);
+  doc.text('\u2767   \u2767   \u2767', W/2, H-10, {align:'center'});
+}
+
+// Convert number to Roman numerals (for guest numbering)
+function toRoman(num){
+  if(num > 3999) return String(num);
+  var val=[1000,900,500,400,100,90,50,40,10,9,5,4,1];
+  var sym=['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];
+  var result='';
+  for(var i=0;i<val.length;i++){
+    while(num>=val[i]){result+=sym[i];num-=val[i];}
+  }
+  return result;
 }
 
 async function downloadPDF(){
@@ -687,7 +920,7 @@ async function downloadPDF(){
   if(!window.jspdf) await ldScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
   if(!window.JSZip) await ldScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
   var jsPDF=window.jspdf.jsPDF, zip=new JSZip();
-  var ov=document.getElementById('prog-ov'), fill=document.getElementById('pfill'), txt=document.getElementById('ppct');
+  var ov=document.getElementById('prog-ov'),fill=document.getElementById('pfill'),txt=document.getElementById('ppct');
   ov.classList.add('show');
   var couple=document.getElementById('event-name').value.trim()||'Wedding';
   var folder=zip.folder(couple.replace(/[^a-z0-9]/gi,'_')+'_QR');
@@ -705,10 +938,12 @@ async function downloadPDF(){
   ov.classList.remove('show');
 }
 
-// ── PROCESS SCANNED CODE ─────────────────────────
+// ══════════════════════════════════════════════
+//  PROCESS CODE
+// ══════════════════════════════════════════════
 async function processCode(raw){
   var code=codes.find(function(c){return c.code_id===raw;});
-  if(!code){showResult('fail','✕','INVALID CODE','Not registered in this session');addLog(raw,false,'Invalid code');return;}
+  if(!code){showResult('fail','&#10005;','INVALID CODE','Not registered in this session');addLog(raw,false,'Invalid code');return;}
   if(usedSet.has(raw)){showResult('fail','!','ALREADY USED','Guest #'+code.num+' already entered');addLog(raw,false,'Guest #'+code.num+' – already scanned');return;}
   var res=await sb.from('codes').update({used_at:new Date().toISOString()}).eq('code_id',raw).eq('session_id',SESSION_ID);
   if(res.error){showResult('fail','!','DB ERROR',res.error.message);return;}
@@ -716,22 +951,24 @@ async function processCode(raw){
   var idx=codes.findIndex(function(c){return c.code_id===raw;});
   if(idx!==-1) codes[idx].used_at=new Date().toISOString();
   updateStats();
-  showResult('ok','✓','WELCOME!','Guest #'+code.num+' – Enjoy the celebration!');
+  showResult('ok','&#10003;','WELCOME!','Guest #'+code.num+' – Enjoy the celebration!');
   addLog(raw,true,'Guest #'+code.num+' admitted');
 }
 
 function showResult(type,icon,title,sub){
   var box=document.getElementById('result-box');
-  box.className='result-box '+type;
+  box.className='result-box'+(type?' '+type:'');
   box.innerHTML='<div class="ri">'+icon+'</div><div class="rt">'+title+'</div><div class="rs">'+sub+'</div>';
-  setTimeout(function(){
-    box.className='result-box';
-    box.innerHTML='<div class="ri">&#9671;</div><div class="rt">READY</div><div class="rs">Tap the button above to scan a guest\'s code</div>';
-  },4000);
+  if(type){
+    setTimeout(function(){
+      box.className='result-box';
+      box.innerHTML='<div class="ri">&#9671;</div><div class="rt">READY</div><div class="rs">'+(usingLive?'Camera is live — point at QR code':'Tap the camera button to scan')+'</div>';
+    },4000);
+  }
 }
 
 function addLog(code,ok,msg){
-  var time=new Date().toLocaleTimeString(); scanLog.unshift({code,ok,msg,time});
+  var time=new Date().toLocaleTimeString(); scanLog.unshift({code:code,ok:ok,msg:msg,time:time});
   var list=document.getElementById('log-list');
   var item=document.createElement('div'); item.className='li';
   item.innerHTML='<span class="ldot '+(ok?'ok':'fail')+'"></span><span>'+msg+'</span><span class="ltime">'+time+'</span>';
@@ -751,7 +988,9 @@ function updateStats(){
   document.getElementById('stat-remaining').textContent=codes.length-usedSet.size;
 }
 
-// ── MANAGE ──────────────────────────────────────
+// ══════════════════════════════════════════════
+//  MANAGE
+// ══════════════════════════════════════════════
 function renderManage(filter){
   var list=document.getElementById('manage-list');
   if(!codes.length){list.innerHTML='<div class="empty-state"><div class="ei">&#9671;</div><div>No codes generated yet</div></div>';return;}
@@ -784,11 +1023,13 @@ async function resetAllUsed(){
   document.getElementById('log-list').innerHTML='<div class="lempty">No scans yet</div>';
 }
 
-// ── UTILS ────────────────────────────────────────
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
 function setSS(s,t){document.getElementById('sdot').className='sdot '+s;document.getElementById('stxt').textContent=t;}
 function hash(str){var h=0;for(var i=0;i<str.length;i++)h=Math.imul(31,h)+str.charCodeAt(i)|0;return 'h'+Math.abs(h).toString(16);}
 
-// ── AUTO-RESUME ──────────────────────────────────
+// Auto-resume session
 (async function(){
   var saved=localStorage.getItem('wqr_session');
   if(!saved) return;
