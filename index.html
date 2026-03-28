@@ -27,18 +27,14 @@
   --fail:        #8a2020;
   --fail-bg:     #f5e8e8;
   --radius:      6px;
+  --nav-h:       56px;
+  --bottom-h:    62px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{-webkit-text-size-adjust:100%;}
 body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--paper);min-height:100vh;overflow-x:hidden;}
 
-/* SETUP BANNER */
-#setup-banner{background:linear-gradient(135deg,#3a2a00,#1e1600);border-bottom:1px solid #c8a96e55;padding:14px 20px;font-size:.82rem;color:#e8c880;line-height:1.7;display:none;}
-#setup-banner strong{color:#ffd966;}
-#setup-banner code{background:rgba(255,255,255,.1);padding:1px 6px;border-radius:3px;font-size:.78rem;color:#ffe599;}
-#setup-banner a{color:#ffd966;}
-
-/* LOGIN */
+/* ── LOGIN ───────────────────────────────── */
 #login-screen{position:fixed;inset:0;background:var(--ink);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;}
 .login-wrap{width:100%;max-width:400px;}
 .login-crest{text-align:center;margin-bottom:32px;}
@@ -62,7 +58,7 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 .alert-error{background:var(--fail-bg);color:var(--fail);border:1px solid #d09090;}
 .alert-info{background:var(--ok-bg);color:var(--ok);border:1px solid #90c0a0;}
 
-/* BUTTONS */
+/* ── BUTTONS ─────────────────────────────── */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border:none;border-radius:4px;cursor:pointer;font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:2px;transition:all .2s;white-space:nowrap;text-transform:uppercase;}
 .btn-full{width:100%;}
 .btn-primary{background:var(--gold);color:var(--ink);font-weight:600;}
@@ -75,18 +71,86 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 .btn-danger:hover{background:#a02828;}
 .btn-sm{padding:6px 12px;font-size:.62rem;}
 
-/* APP SHELL */
+/* ── APP SHELL ───────────────────────────── */
 #app{display:none;flex-direction:column;min-height:100vh;}
-.topbar{background:var(--ink-mid);border-bottom:1px solid var(--gold-border);display:flex;align-items:center;padding:0 16px;position:sticky;top:0;z-index:10;flex-wrap:wrap;}
-.topbar-brand{font-family:'Cinzel',serif;color:var(--gold);font-size:.78rem;letter-spacing:3px;padding:14px 16px 14px 0;border-right:1px solid var(--gold-border);white-space:nowrap;display:flex;align-items:center;gap:8px;}
-.session-pill{background:rgba(200,169,110,.12);border:1px solid var(--gold-border);color:var(--gold-dim);font-size:.6rem;letter-spacing:1px;padding:3px 9px;border-radius:20px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Cinzel',serif;}
-.topbar-tabs{display:flex;flex:1;overflow-x:auto;padding-left:8px;}
-.topbar-tab{padding:15px 14px;background:none;border:none;cursor:pointer;font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:1.5px;color:var(--text-muted);transition:all .2s;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
+
+/* ── TOPBAR (desktop) ────────────────────── */
+.topbar{
+  background:var(--ink-mid);
+  border-bottom:1px solid var(--gold-border);
+  display:flex;align-items:center;
+  padding:0 16px;
+  position:sticky;top:0;z-index:50;
+  height:var(--nav-h);
+}
+.topbar-brand{
+  font-family:'Cinzel',serif;color:var(--gold);
+  font-size:.78rem;letter-spacing:3px;
+  padding-right:16px;
+  border-right:1px solid var(--gold-border);
+  white-space:nowrap;display:flex;align-items:center;gap:8px;
+  flex-shrink:0;
+}
+.session-pill{
+  background:rgba(200,169,110,.12);border:1px solid var(--gold-border);
+  color:var(--gold-dim);font-size:.6rem;letter-spacing:1px;
+  padding:3px 9px;border-radius:20px;max-width:120px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:'Cinzel',serif;
+}
+
+/* Desktop tabs — hidden on mobile */
+.topbar-tabs{
+  display:flex;flex:1;padding-left:8px;
+  overflow:hidden; /* no scroll on desktop */
+}
+.topbar-tab{
+  padding:0 14px;height:var(--nav-h);
+  background:none;border:none;cursor:pointer;
+  font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:1.5px;
+  color:var(--text-muted);transition:all .2s;
+  border-bottom:2px solid transparent;
+  white-space:nowrap;display:flex;align-items:center;
+}
 .topbar-tab:hover{color:var(--paper);}
 .topbar-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
-.topbar-end{margin-left:auto;display:flex;align-items:center;gap:10px;padding:10px 0;}
+.topbar-end{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0;}
 
-/* SYNC BAR */
+/* ── BOTTOM NAV (mobile only) ────────────── */
+.bottom-nav{
+  display:none; /* shown via media query */
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--ink-mid);
+  border-top:1px solid var(--gold-border);
+  height:var(--bottom-h);
+  z-index:50;
+  /* safe area for iPhone home bar */
+  padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+.bottom-nav-inner{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  height:100%;
+}
+.bnav-btn{
+  background:none;border:none;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;padding:8px 4px;
+  font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:1.5px;
+  color:var(--text-muted);transition:all .2s;
+  border-top:2px solid transparent;
+}
+.bnav-btn.active{color:var(--gold);border-top-color:var(--gold);}
+.bnav-icon{font-size:1.15rem;line-height:1;}
+
+@media(max-width:640px){
+  .topbar-tabs{display:none;}          /* hide desktop tabs */
+  .bottom-nav{display:block;}           /* show bottom nav */
+  /* push page content up above bottom bar */
+  .main{padding-bottom:calc(var(--bottom-h) + env(safe-area-inset-bottom,0px) + 12px)!important;}
+  .topbar-brand{border-right:none;}
+}
+
+/* ── SYNC BAR ────────────────────────────── */
 .syncbar{background:var(--ink-soft);border-bottom:1px solid rgba(200,169,110,.1);padding:6px 18px;display:flex;align-items:center;gap:8px;font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:1.5px;color:var(--text-muted);}
 .sync-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .sync-dot.live{background:var(--ok);box-shadow:0 0 6px var(--ok);animation:pdot 2s infinite;}
@@ -95,16 +159,16 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 .sync-dot.error{background:var(--fail);}
 @keyframes pdot{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* MAIN */
-.main{flex:1;padding:28px 16px;max-width:960px;margin:0 auto;width:100%;}
+/* ── MAIN ────────────────────────────────── */
+.main{flex:1;padding:24px 16px;max-width:960px;margin:0 auto;width:100%;}
 .page{display:none;}
 .page.active{display:block;}
-.page-head{text-align:center;margin-bottom:32px;}
+.page-head{text-align:center;margin-bottom:28px;}
 .page-head .ornament{color:var(--gold-dim);letter-spacing:8px;font-size:.85rem;}
-.page-head h1{font-family:'Cinzel',serif;font-weight:400;font-size:clamp(1.4rem,4vw,2rem);color:var(--paper);letter-spacing:4px;margin:8px 0 6px;}
+.page-head h1{font-family:'Cinzel',serif;font-weight:400;font-size:clamp(1.3rem,4vw,2rem);color:var(--paper);letter-spacing:4px;margin:8px 0 6px;}
 .page-head p{color:var(--text-muted);font-size:.88rem;letter-spacing:1px;}
-.panel{background:var(--ink-mid);border:1px solid var(--gold-border);border-radius:var(--radius);padding:22px;margin-bottom:20px;}
-.divider{display:flex;align-items:center;gap:12px;margin:24px 0;color:var(--gold-dim);font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:3px;}
+.panel{background:var(--ink-mid);border:1px solid var(--gold-border);border-radius:var(--radius);padding:20px;margin-bottom:18px;}
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--gold-dim);font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:3px;}
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--gold-border);}
 .form-row{display:flex;gap:14px;flex-wrap:wrap;}
 .form-row>*{flex:1;min-width:160px;}
@@ -115,20 +179,20 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 .btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
 .info-strip{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.15);border-radius:4px;padding:11px 14px;font-size:.8rem;color:var(--text-muted);line-height:1.7;margin-top:14px;}
 
-/* STATS */
-.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0;}
-.stat{background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:var(--radius);padding:18px 8px;text-align:center;}
+/* ── STATS ───────────────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0;}
+.stat{background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:var(--radius);padding:16px 8px;text-align:center;}
 .stat-num{display:block;font-family:'Cinzel',serif;font-size:clamp(1.4rem,5vw,2rem);color:var(--gold);}
 .stat-lbl{font-size:.6rem;letter-spacing:2px;color:var(--text-muted);margin-top:4px;}
 
-/* QR GRID */
-#qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;max-height:480px;overflow-y:auto;padding:2px;}
+/* ── QR GRID ─────────────────────────────── */
+#qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;max-height:440px;overflow-y:auto;padding:2px;}
 .qr-item{background:var(--paper);border-radius:4px;padding:10px 8px;text-align:center;border:1px solid var(--gold-border);}
 .qr-item canvas,.qr-item img{width:108px!important;height:108px!important;max-width:100%!important;}
 .qr-lbl{font-size:.6rem;color:var(--text-muted);margin-top:5px;font-family:'Cinzel',serif;letter-spacing:1px;}
 
-/* SCANNER */
-.scanner-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+/* ── SCANNER ─────────────────────────────── */
+.scanner-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
 @media(max-width:640px){.scanner-layout{grid-template-columns:1fr;}}
 #video-wrap{position:relative;background:#000;border-radius:var(--radius);overflow:hidden;aspect-ratio:1;border:2px solid var(--gold-border);}
 #scanner-video{width:100%;height:100%;object-fit:cover;display:block;}
@@ -142,7 +206,7 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 .scan-frame>span::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0}
 .scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:sweep 2s linear infinite;}
 @keyframes sweep{0%{top:5%}100%{top:95%}}
-.result-box{border-radius:var(--radius);padding:26px 16px;text-align:center;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px solid var(--gold-border);background:var(--ink-soft);transition:all .25s;}
+.result-box{border-radius:var(--radius);padding:24px 16px;text-align:center;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px solid var(--gold-border);background:var(--ink-soft);transition:all .25s;}
 .result-box.ok{background:var(--ok-bg);border-color:var(--ok);animation:fok .3s;}
 .result-box.fail{background:var(--fail-bg);border-color:var(--fail);animation:ffail .3s;}
 @keyframes fok{from{background:#b0f0cc}to{background:var(--ok-bg)}}
@@ -164,18 +228,21 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 .manual-row input{flex:1;padding:10px 13px;background:var(--ink-soft);border:1px solid var(--gold-border);border-radius:4px;color:var(--paper);font-family:'EB Garamond',serif;font-size:1rem;outline:none;}
 .manual-row input:focus{border-color:var(--gold);}
 
-/* MANAGE */
-.manage-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(200,169,110,.1);flex-wrap:wrap;font-size:.85rem;}
-.manage-num{font-family:'Cinzel',serif;font-size:.7rem;color:var(--gold);width:40px;flex-shrink:0;}
-.manage-code{font-family:monospace;font-size:.78rem;color:var(--text-muted);flex:1;min-width:120px;}
+/* iOS camera note */
+.ios-note{background:rgba(200,169,110,.08);border:1px solid var(--gold-border);border-radius:4px;padding:10px 13px;font-size:.78rem;color:var(--text-muted);line-height:1.6;margin-top:10px;display:none;}
+
+/* ── MANAGE ──────────────────────────────── */
+.manage-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(200,169,110,.1);flex-wrap:wrap;font-size:.85rem;}
+.manage-num{font-family:'Cinzel',serif;font-size:.7rem;color:var(--gold);width:38px;flex-shrink:0;}
+.manage-code{font-family:monospace;font-size:.75rem;color:var(--text-muted);flex:1;min-width:100px;}
 .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.64rem;letter-spacing:1px;font-family:'Cinzel',serif;}
 .badge-used{background:var(--fail-bg);color:var(--fail);}
 .badge-unused{background:var(--ok-bg);color:var(--ok);}
 .manage-count{font-family:'Cinzel',serif;font-size:.68rem;color:var(--text-muted);margin-left:auto;}
-.empty-state{text-align:center;padding:48px 20px;color:var(--text-muted);}
-.empty-icon{font-size:2.8rem;margin-bottom:12px;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-muted);}
+.empty-icon{font-size:2.4rem;margin-bottom:12px;}
 
-/* PROGRESS */
+/* ── PROGRESS ────────────────────────────── */
 #progress-overlay{display:none;position:fixed;inset:0;background:rgba(13,11,8,.9);z-index:300;align-items:center;justify-content:center;}
 #progress-overlay.show{display:flex;}
 .progress-card{background:var(--ink-mid);border:2px solid var(--gold-border);border-radius:var(--radius);padding:40px 50px;text-align:center;min-width:300px;box-shadow:0 40px 100px rgba(0,0,0,.7);}
@@ -189,9 +256,9 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 ::-webkit-scrollbar-thumb{background:var(--gold-border);border-radius:3px;}
 
 @media print{
-  #login-screen,.topbar,.syncbar,.btn-row,.manual-row,#progress-overlay,#setup-banner{display:none!important}
+  #login-screen,.topbar,.bottom-nav,.syncbar,.btn-row,.manual-row,#progress-overlay{display:none!important}
   body{background:white;color:black;}
-  .main{padding:0;}
+  .main{padding:0!important;}
   .page{display:block!important;}
   #page-scan,#page-manage{display:none!important;}
   #qr-grid{max-height:none;grid-template-columns:repeat(4,1fr);}
@@ -199,13 +266,6 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 </style>
 </head>
 <body>
-
-<div id="setup-banner">
-  &#9881; <strong>Supabase not configured.</strong>
-  Open this file, find <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code> near the top of the script and paste your values from
-  <a href="https://supabase.com" target="_blank">supabase.com</a> &rarr; Project Settings &rarr; API.
-  Also run the SQL block at the very bottom of this file in Supabase SQL Editor.
-</div>
 
 <!-- LOGIN -->
 <div id="login-screen">
@@ -223,7 +283,6 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
       <div class="login-body">
         <div id="login-err" class="alert-box alert-error"></div>
         <div id="login-ok"  class="alert-box alert-info"></div>
-
         <div id="panel-join">
           <div class="field">
             <label>Session Name</label>
@@ -235,7 +294,6 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
           </div>
           <button class="btn btn-primary btn-full" id="join-btn" onclick="doJoin()">&#9654; Join Session</button>
         </div>
-
         <div id="panel-create" style="display:none">
           <div class="hint-box">
             Create a session for your event. Share the <strong>session name + password</strong> with all door staff — they open this page and join with the same credentials.
@@ -257,11 +315,13 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 
 <!-- APP -->
 <div id="app">
+  <!-- TOP BAR -->
   <div class="topbar">
     <div class="topbar-brand">
       &#9830; WEDDING QR
       <span class="session-pill" id="session-pill">&#8212;</span>
     </div>
+    <!-- Desktop tabs -->
     <div class="topbar-tabs">
       <button class="topbar-tab active" onclick="showPage('gen',this)">Generate</button>
       <button class="topbar-tab"        onclick="showPage('scan',this)">Scanner</button>
@@ -271,11 +331,14 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
       <button class="btn btn-outline btn-sm" onclick="doLogout()">&#10005; Logout</button>
     </div>
   </div>
+
+  <!-- SYNC BAR -->
   <div class="syncbar">
     <span class="sync-dot offline" id="sync-dot"></span>
     <span id="sync-text">Connecting&hellip;</span>
   </div>
 
+  <!-- MAIN CONTENT -->
   <div class="main">
 
     <!-- GENERATE -->
@@ -329,6 +392,10 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
             <button class="btn btn-primary" id="start-btn" onclick="startCamera()">&#9654; Start Camera</button>
             <button class="btn btn-outline" id="stop-btn"  onclick="stopCamera()" disabled>&#9632; Stop</button>
           </div>
+          <!-- iOS note shown automatically on iPhone -->
+          <div class="ios-note" id="ios-note">
+            &#128241; <strong>iPhone tip:</strong> Make sure you open this page in <strong>Safari</strong> (not Chrome or another browser) for the camera to work correctly on iOS.
+          </div>
           <div class="manual-row">
             <input type="text" id="manual-code" placeholder="Or type / paste code&hellip;" onkeydown="if(event.key==='Enter')manualCheck()">
             <button class="btn btn-outline" onclick="manualCheck()">Check</button>
@@ -361,7 +428,7 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
           <button class="btn btn-outline btn-sm" onclick="renderManage('unused')">Unused</button>
           <button class="btn btn-outline btn-sm" onclick="renderManage('used')">Used</button>
           <span class="manage-count" id="manage-count"></span>
-          <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="resetAllUsed()">&#8634; Reset All Used</button>
+          <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="resetAllUsed()">&#8634; Reset All</button>
         </div>
       </div>
       <div class="panel" id="manage-list">
@@ -369,8 +436,27 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
       </div>
     </div>
 
-  </div>
-</div>
+  </div><!-- /main -->
+
+  <!-- BOTTOM NAV (mobile) -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button class="bnav-btn active" id="bnav-gen" onclick="showPageMobile('gen', this)">
+        <span class="bnav-icon">&#9672;</span>
+        <span>Generate</span>
+      </button>
+      <button class="bnav-btn" id="bnav-scan" onclick="showPageMobile('scan', this)">
+        <span class="bnav-icon">&#9654;</span>
+        <span>Scanner</span>
+      </button>
+      <button class="bnav-btn" id="bnav-manage" onclick="showPageMobile('manage', this)">
+        <span class="bnav-icon">&#9776;</span>
+        <span>Manage</span>
+      </button>
+    </div>
+  </nav>
+
+</div><!-- /app -->
 
 <div id="progress-overlay">
   <div class="progress-card">
@@ -382,18 +468,18 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 
 <script>
 // ════════════════════════════════════════════════════
-//  SUPABASE CONFIG  — paste your values here
-//  Get them from: supabase.com → your project →
-//  Project Settings → API
+//  SUPABASE CONFIG
 // ════════════════════════════════════════════════════
 var SUPABASE_URL      = 'https://pyfinjrjvkudyfteelkw.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5ZmluanJqdmt1ZHlmdGVlbGt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0ODk1MjQsImV4cCI6MjA5MDA2NTUyNH0.unWUjfa883HFkzaZgoOYHyMGs_7eXPkOD71EokomWLA';
 // ════════════════════════════════════════════════════
 
 var CONFIGURED = SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY.length > 20;
-if (!CONFIGURED) document.getElementById('setup-banner').style.display = 'block';
-
 var sb = CONFIGURED ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+// Detect iOS
+var IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+if (IS_IOS) document.getElementById('ios-note').style.display = 'block';
 
 // ── STATE ─────────────────────────────────────────────
 var SESSION_ID   = null;
@@ -402,6 +488,32 @@ var codes        = [];
 var usedSet      = new Set();
 var scanLog      = [];
 var realtimeSub  = null;
+
+// ── NAV ───────────────────────────────────────────────
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.topbar-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('page-'+id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  // Sync bottom nav active state
+  ['gen','scan','manage'].forEach(function(x){
+    var b = document.getElementById('bnav-'+x);
+    if (b) b.classList.toggle('active', x===id);
+  });
+  if (id==='scan')   updateStats();
+  if (id==='manage') renderManage('all');
+}
+
+function showPageMobile(id, btn) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.bnav-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  // sync desktop tabs
+  document.querySelectorAll('.topbar-tab').forEach(function(t){ t.classList.remove('active'); });
+  if (id==='scan')   updateStats();
+  if (id==='manage') renderManage('all');
+}
 
 // ── LOGIN ─────────────────────────────────────────────
 function switchTab(tab) {
@@ -417,49 +529,41 @@ function clearAlerts(){ document.getElementById('login-err').style.display='none
 function btnLoad(id,on,lbl){ var b=document.getElementById(id); b.disabled=on; b.textContent=on?'…':lbl; }
 
 async function doCreate() {
-  if (!CONFIGURED) { showErr('Supabase not configured — see the banner.'); return; }
+  if (!CONFIGURED) { showErr('Supabase not configured.'); return; }
   var name = document.getElementById('create-name').value.trim();
   var pass = document.getElementById('create-pass').value.trim();
   if (!name) { showErr('Enter a session name.'); return; }
   if (!pass) { showErr('Enter a password.'); return; }
   btnLoad('create-btn', true, '◆ Create Session');
-
   var check = await sb.from('sessions').select('id').ilike('name', name).maybeSingle();
   if (check.data) { showErr('Session name already exists. Use "Join Session".'); btnLoad('create-btn',false,'◆ Create Session'); return; }
-
   var res = await sb.from('sessions').insert({ name, password_hash: hash(pass) }).select().single();
   if (res.error) { showErr('Error: '+res.error.message); btnLoad('create-btn',false,'◆ Create Session'); return; }
-
   showOk('Session created! Joining…');
   setTimeout(function(){ enterApp(res.data.id, name); }, 600);
 }
 
 async function doJoin() {
-  if (!CONFIGURED) { showErr('Supabase not configured — see the banner.'); return; }
+  if (!CONFIGURED) { showErr('Supabase not configured.'); return; }
   var name = document.getElementById('join-name').value.trim();
   var pass = document.getElementById('join-pass').value.trim();
   if (!name) { showErr('Enter the session name.'); return; }
   if (!pass) { showErr('Enter the password.'); return; }
   btnLoad('join-btn', true, '▶ Join Session');
-
   var res = await sb.from('sessions').select('id,name,password_hash').ilike('name',name).maybeSingle();
   if (res.error || !res.data) { showErr('Session not found. Check the name or create a new one.'); btnLoad('join-btn',false,'▶ Join Session'); return; }
   if (res.data.password_hash !== hash(pass)) { showErr('Incorrect password.'); btnLoad('join-btn',false,'▶ Join Session'); return; }
-
   enterApp(res.data.id, res.data.name);
 }
 
-// ── ENTER APP ─────────────────────────────────────────
 async function enterApp(sessionId, sessionName) {
   SESSION_ID   = sessionId;
   SESSION_NAME = sessionName;
   localStorage.setItem('wqr_session', JSON.stringify({ id:sessionId, name:sessionName }));
-
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display          = 'flex';
   document.getElementById('session-pill').textContent   = sessionName;
   document.getElementById('event-name').value           = sessionName;
-
   setSyncStatus('syncing','Loading…');
   await loadCodes();
   subscribeRealtime();
@@ -476,13 +580,11 @@ async function loadCodes() {
   setSyncStatus('live','Live · '+codes.length+' codes');
 }
 
-// ── REALTIME ──────────────────────────────────────────
 function subscribeRealtime() {
   if (realtimeSub) { sb.removeChannel(realtimeSub); realtimeSub=null; }
   realtimeSub = sb.channel('codes-'+SESSION_ID)
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'codes',filter:'session_id=eq.'+SESSION_ID}, function(p){
-      var u = p.new;
-      var idx = codes.findIndex(function(c){ return c.code_id===u.code_id; });
+      var u=p.new, idx=codes.findIndex(function(c){ return c.code_id===u.code_id; });
       if (idx!==-1) codes[idx]=u;
       if (u.used_at) usedSet.add(u.code_id); else usedSet.delete(u.code_id);
       updateStats();
@@ -497,7 +599,6 @@ function subscribeRealtime() {
     });
 }
 
-// ── LOGOUT ────────────────────────────────────────────
 function doLogout() {
   if (realtimeSub) { sb.removeChannel(realtimeSub); realtimeSub=null; }
   stopCamera();
@@ -510,16 +611,6 @@ function doLogout() {
   clearAlerts(); switchTab('join');
 }
 
-// ── NAV ───────────────────────────────────────────────
-function showPage(id,btn) {
-  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
-  document.querySelectorAll('.topbar-tab').forEach(function(t){ t.classList.remove('active'); });
-  document.getElementById('page-'+id).classList.add('active');
-  btn.classList.add('active');
-  if (id==='scan')   updateStats();
-  if (id==='manage') renderManage('all');
-}
-
 // ── GENERATE ──────────────────────────────────────────
 function uid(){ return 'WED-'+Math.random().toString(36).substr(2,4).toUpperCase()+Math.random().toString(36).substr(2,4).toUpperCase(); }
 
@@ -528,22 +619,16 @@ async function generateQRs() {
   var count = parseInt(document.getElementById('qr-count').value);
   var name  = document.getElementById('event-name').value.trim() || 'Wedding';
   if (!count||count<1) { alert('Enter a valid number.'); return; }
-
   document.getElementById('gen-btn').disabled=true;
   document.getElementById('gen-info').textContent='Saving to database…';
-
-  // Delete previous codes for this session
   await sb.from('codes').delete().eq('session_id',SESSION_ID);
-
   var batch=[];
   for (var i=1;i<=count;i++) batch.push({session_id:SESSION_ID,code_id:uid(),num:i,name:name,used_at:null});
-
   var CHUNK=500;
   for (var j=0;j<batch.length;j+=CHUNK) {
     var res=await sb.from('codes').insert(batch.slice(j,j+CHUNK));
     if (res.error) { alert('DB error: '+res.error.message); document.getElementById('gen-btn').disabled=false; return; }
   }
-
   codes=batch; usedSet=new Set(); scanLog=[];
   renderQRGrid(); updateStats();
   document.getElementById('dl-btn').disabled=false;
@@ -566,110 +651,257 @@ function renderQRGrid() {
   document.getElementById('print-btn').disabled=false;
 }
 
-// ── PDF ───────────────────────────────────────────────
+// ════════════════════════════════════════════════════
+//  PDF — completely rewritten card layout with large text
+// ════════════════════════════════════════════════════
 function loadScript(src){ return new Promise(function(r,e){ var s=document.createElement('script'); s.src=src; s.onload=r; s.onerror=e; document.head.appendChild(s); }); }
 function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
 
-function buildCard(doc,c,couple) {
-  var W=148,H=210,m=8,cw=W-m*2,ch=H-m*2;
-  doc.setFillColor(247,242,232); doc.roundedRect(m,m,cw,ch,4,4,'F');
-  doc.setDrawColor(200,169,110); doc.setLineWidth(.7); doc.roundedRect(m,m,cw,ch,4,4,'S');
-  doc.setLineWidth(.2); doc.roundedRect(m+3,m+3,cw-6,ch-6,2.5,2.5,'S');
-  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(61,46,14);
-  doc.text(couple,W/2,m+18,{align:'center'});
-  doc.setFontSize(9); doc.setTextColor(200,169,110); doc.text('- - - - - - - - - -',W/2,m+26,{align:'center'});
-  var qi=document.getElementById('qi-'+c.code_id); var cv=qi?qi.querySelector('canvas'):null;
-  if(cv) doc.addImage(cv.toDataURL('image/png'),'PNG',(W-90)/2,m+32,90,90);
-  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(61,46,14);
-  doc.text('Guest  #'+c.num,W/2,m+134,{align:'center'});
-  doc.setFont('courier','normal'); doc.setFontSize(7.5); doc.setTextColor(160,140,100);
-  doc.text(c.code_id,W/2,m+143,{align:'center'});
-  doc.setFontSize(9); doc.setTextColor(200,169,110); doc.text('- - - - - - - - - -',W/2,m+152,{align:'center'});
-  doc.setFont('helvetica','italic'); doc.setFontSize(7.5); doc.setTextColor(120,96,64);
-  doc.text('Please present this card at the entrance',W/2,m+162,{align:'center'});
-  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(200,169,110);
-  doc.text('*   *   *',W/2,m+ch-8,{align:'center'});
+function buildCard(doc, c, couple) {
+  // A5 = 148 × 210 mm
+  var W = 148, H = 210;
+  var pad = 7; // page margin
+
+  // ── background ──────────────────────────
+  doc.setFillColor(250, 246, 239);
+  doc.rect(0, 0, W, H, 'F');
+
+  // ── outer gold border ────────────────────
+  doc.setDrawColor(200, 169, 110);
+  doc.setLineWidth(1.2);
+  doc.rect(pad, pad, W - pad*2, H - pad*2);
+
+  // ── inner thin border ────────────────────
+  doc.setLineWidth(0.3);
+  doc.rect(pad + 3.5, pad + 3.5, W - (pad+3.5)*2, H - (pad+3.5)*2);
+
+  // ── couple name ──────────────────────────
+  // Large, centred, bold
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.setTextColor(40, 28, 8);
+  doc.text(couple, W / 2, pad + 18, { align: 'center' });
+
+  // ── decorative line ──────────────────────
+  doc.setDrawColor(200, 169, 110);
+  doc.setLineWidth(0.5);
+  var lx = W * 0.2, lw = W * 0.6;
+  doc.line(lx, pad + 23, lx + lw, pad + 23);
+
+  // ── QR code ──────────────────────────────
+  // Large square, centred — 82mm
+  var qSize = 82;
+  var qX = (W - qSize) / 2;
+  var qY = pad + 28;
+  var qi = document.getElementById('qi-' + c.code_id);
+  var cv = qi ? qi.querySelector('canvas') : null;
+  if (cv) {
+    doc.addImage(cv.toDataURL('image/png'), 'PNG', qX, qY, qSize, qSize);
+  }
+  // thin border around QR
+  doc.setDrawColor(200, 169, 110);
+  doc.setLineWidth(0.4);
+  doc.rect(qX - 1, qY - 1, qSize + 2, qSize + 2);
+
+  var afterQR = qY + qSize + 6;
+
+  // ── decorative line ──────────────────────
+  doc.setDrawColor(200, 169, 110);
+  doc.setLineWidth(0.5);
+  doc.line(lx, afterQR, lx + lw, afterQR);
+
+  // ── GUEST # ──────────────────────────────
+  // Very large so it's readable at a glance
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(28);
+  doc.setTextColor(40, 28, 8);
+  doc.text('Guest  #' + c.num, W / 2, afterQR + 14, { align: 'center' });
+
+  // ── code string ──────────────────────────
+  // Larger monospace — was 7.5px, now 11px
+  doc.setFont('courier', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(140, 110, 60);
+  doc.text(c.code_id, W / 2, afterQR + 24, { align: 'center' });
+
+  // ── instruction ──────────────────────────
+  // Larger italic line
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(12);
+  doc.setTextColor(100, 80, 40);
+  doc.text('Please present this card at the entrance', W / 2, afterQR + 35, { align: 'center' });
+
+  // ── bottom ornament ───────────────────────
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(14);
+  doc.setTextColor(200, 169, 110);
+  doc.text('\u2665   \u2665   \u2665', W / 2, H - pad - 6, { align: 'center' });
 }
 
 async function downloadPDF() {
-  if(!codes.length) return;
-  if(!window.jspdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-  if(!window.JSZip) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+  if (!codes.length) return;
+  if (!window.jspdf) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+  if (!window.JSZip)  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
   var jsPDF=window.jspdf.jsPDF, zip=new JSZip();
   var overlay=document.getElementById('progress-overlay'), fill=document.getElementById('prog-fill'), txt=document.getElementById('prog-txt');
   overlay.classList.add('show');
   var couple=document.getElementById('event-name').value.trim()||'Wedding';
   var folder=zip.folder(couple.replace(/[^a-z0-9]/gi,'_')+'_QR_Codes');
-  for(var i=0;i<codes.length;i++){
-    var c=codes[i]; var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a5'});
+  for (var i=0;i<codes.length;i++){
+    var c=codes[i];
+    var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a5'});
     buildCard(doc,c,couple);
     folder.file('guest_'+String(c.num).padStart(4,'0')+'_'+c.code_id+'.pdf',doc.output('arraybuffer'));
     var pct=Math.round((i+1)/codes.length*100); fill.style.width=pct+'%'; txt.textContent=pct+'%';
     if(i%10===0) await sleep(0);
   }
   var blob=await zip.generateAsync({type:'blob'});
-  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=couple.replace(/[^a-z0-9]/gi,'_')+'_QR.zip'; a.click();
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=couple.replace(/[^a-z0-9]/gi,'_')+'_QR.zip'; a.click();
   overlay.classList.remove('show');
 }
 
-// ── SCANNER ───────────────────────────────────────────
-var stream=null,scanning=false,lastCode='',lastTime=0;
+// ════════════════════════════════════════════════════
+//  SCANNER — iOS-safe implementation
+//  iOS Safari: getUserMedia works but needs specific
+//  constraints. BarcodeDetector does NOT exist on iOS.
+//  We use jsQR only (already loaded at page top).
+//  Key fix: we must call video.play() AFTER setting
+//  srcObject, and the video element must be visible
+//  (not display:none) for iOS to produce frames.
+// ════════════════════════════════════════════════════
+var stream=null, scanning=false, lastCode='', lastTime=0;
 var scanCanvas=document.createElement('canvas');
 var scanCtx=scanCanvas.getContext('2d',{willReadFrequently:true});
+var rafId=null;
 
 async function startCamera() {
-  var constraints=[
-    {video:{facingMode:{exact:'environment'},width:{ideal:1280},height:{ideal:1280}}},
-    {video:{facingMode:'environment',width:{ideal:640},height:{ideal:640}}},
-    {video:true}
+  // Progressive fallback constraints — iOS needs facingMode as string not object
+  var constraintSets = [
+    { video: { facingMode: { exact: 'environment' }, width: { ideal: 1280 }, height: { ideal: 1280 } } },
+    { video: { facingMode: 'environment' } },
+    { video: true }
   ];
-  stream=null;
-  for(var i=0;i<constraints.length;i++){ try{ stream=await navigator.mediaDevices.getUserMedia(constraints[i]); break; }catch(e){} }
-  if(!stream){ alert('Camera unavailable — use manual input.'); return; }
-  var video=document.getElementById('scanner-video');
-  video.srcObject=stream; await video.play();
-  document.getElementById('start-btn').disabled=true;
-  document.getElementById('stop-btn').disabled=false;
-  scanning=true; requestAnimationFrame(scanFrame);
+
+  stream = null;
+  var lastErr = '';
+  for (var i = 0; i < constraintSets.length; i++) {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia(constraintSets[i]);
+      break;
+    } catch(e) { lastErr = e.message; }
+  }
+
+  if (!stream) {
+    alert('Camera error: ' + lastErr + '\n\nOn iPhone: open this page in Safari, then allow camera access when prompted.');
+    return;
+  }
+
+  var video = document.getElementById('scanner-video');
+  video.srcObject = stream;
+
+  // iOS requires a user-gesture-triggered play()
+  // We also set these attributes directly for Safari compatibility
+  video.setAttribute('autoplay', '');
+  video.setAttribute('playsinline', '');
+  video.setAttribute('muted', '');
+
+  try {
+    await video.play();
+  } catch(e) {
+    // On some iOS versions play() returns a promise that rejects on first call
+    // but the video still plays — ignore
+  }
+
+  document.getElementById('start-btn').disabled = true;
+  document.getElementById('stop-btn').disabled  = false;
+  scanning = true;
+
+  // Wait until video has real dimensions before starting scan loop
+  waitForVideoReady(video);
+}
+
+function waitForVideoReady(video) {
+  if (video.readyState >= 2 && video.videoWidth > 0) {
+    scanLoop(video);
+  } else {
+    video.addEventListener('loadeddata', function onLoaded(){
+      video.removeEventListener('loadeddata', onLoaded);
+      scanLoop(video);
+    });
+    // Fallback poll for iOS which sometimes doesn't fire loadeddata
+    setTimeout(function(){
+      if (scanning && video.videoWidth > 0) scanLoop(video);
+    }, 1500);
+  }
+}
+
+function scanLoop(video) {
+  if (!scanning) return;
+
+  if (!video.videoWidth || video.readyState < 2) {
+    rafId = requestAnimationFrame(function(){ scanLoop(video); });
+    return;
+  }
+
+  // Downscale to max 640px wide for performance
+  var scale = Math.min(1, 640 / video.videoWidth);
+  var w = Math.round(video.videoWidth  * scale);
+  var h = Math.round(video.videoHeight * scale);
+
+  if (scanCanvas.width !== w || scanCanvas.height !== h) {
+    scanCanvas.width  = w;
+    scanCanvas.height = h;
+  }
+
+  try {
+    scanCtx.drawImage(video, 0, 0, w, h);
+
+    // jsQR — works on all browsers including iOS Safari
+    var imageData = scanCtx.getImageData(0, 0, w, h);
+    var result    = jsQR(imageData.data, w, h, { inversionAttempts: 'dontInvert' });
+    if (result && result.data) {
+      processCode(result.data);
+    }
+
+    // BarcodeDetector as bonus — available on Android Chrome / desktop
+    // Do NOT use on iOS (it doesn't exist)
+    if (!IS_IOS && window.BarcodeDetector) {
+      new BarcodeDetector({ formats: ['qr_code'] })
+        .detect(scanCanvas)
+        .then(function(r){ if (r.length) processCode(r[0].rawValue); })
+        .catch(function(){});
+    }
+  } catch(e) {}
+
+  rafId = requestAnimationFrame(function(){ scanLoop(video); });
 }
 
 function stopCamera() {
-  scanning=false;
-  if(stream){ stream.getTracks().forEach(function(t){ t.stop(); }); stream=null; }
-  document.getElementById('scanner-video').srcObject=null;
-  document.getElementById('start-btn').disabled=false;
-  document.getElementById('stop-btn').disabled=true;
-}
-
-function scanFrame() {
-  if(!scanning){ requestAnimationFrame(scanFrame); return; }
-  var video=document.getElementById('scanner-video');
-  if(!video.videoWidth||video.readyState<2){ requestAnimationFrame(scanFrame); return; }
-  var scale=Math.min(1,640/video.videoWidth);
-  var w=Math.round(video.videoWidth*scale), h=Math.round(video.videoHeight*scale);
-  if(scanCanvas.width!==w||scanCanvas.height!==h){ scanCanvas.width=w; scanCanvas.height=h; }
-  scanCtx.drawImage(video,0,0,w,h);
-  if(window.BarcodeDetector){
-    new BarcodeDetector({formats:['qr_code']}).detect(scanCanvas).then(function(r){ if(r.length) processCode(r[0].rawValue); }).catch(function(){});
-  }
-  if(window.jsQR){
-    try{ var id=scanCtx.getImageData(0,0,w,h); var r=jsQR(id.data,w,h,{inversionAttempts:'dontInvert'}); if(r) processCode(r.data); }catch(e){}
-  }
-  requestAnimationFrame(scanFrame);
+  scanning = false;
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
+  var video = document.getElementById('scanner-video');
+  video.srcObject = null;
+  document.getElementById('start-btn').disabled = false;
+  document.getElementById('stop-btn').disabled  = true;
 }
 
 async function processCode(raw) {
-  var now=Date.now();
-  if(raw===lastCode&&now-lastTime<3000) return;
-  lastCode=raw; lastTime=now;
-  var code=codes.find(function(c){ return c.code_id===raw; });
-  if(!code){ showResult('fail','✕','INVALID CODE','Not in this session'); addLog(raw,false,'Invalid code'); return; }
-  if(usedSet.has(raw)){ showResult('fail','!','ALREADY USED','Guest #'+code.num+' already entered'); addLog(raw,false,'Guest #'+code.num+' – already scanned'); return; }
-  var res=await sb.from('codes').update({used_at:new Date().toISOString()}).eq('code_id',raw).eq('session_id',SESSION_ID);
-  if(res.error){ showResult('fail','!','DB ERROR',res.error.message); return; }
+  var now = Date.now();
+  if (raw === lastCode && now - lastTime < 3000) return;
+  lastCode = raw; lastTime = now;
+
+  var code = codes.find(function(c){ return c.code_id === raw; });
+  if (!code) { showResult('fail','✕','INVALID CODE','Not in this session'); addLog(raw,false,'Invalid code'); return; }
+  if (usedSet.has(raw)) { showResult('fail','!','ALREADY USED','Guest #'+code.num+' already entered'); addLog(raw,false,'Guest #'+code.num+' – already scanned'); return; }
+
+  var res = await sb.from('codes').update({used_at:new Date().toISOString()}).eq('code_id',raw).eq('session_id',SESSION_ID);
+  if (res.error) { showResult('fail','!','DB ERROR',res.error.message); return; }
+
   usedSet.add(raw);
-  var idx=codes.findIndex(function(c){ return c.code_id===raw; });
-  if(idx!==-1) codes[idx].used_at=new Date().toISOString();
+  var idx = codes.findIndex(function(c){ return c.code_id===raw; });
+  if (idx!==-1) codes[idx].used_at = new Date().toISOString();
   updateStats();
   showResult('ok','✓','WELCOME!','Guest #'+code.num+' – Enjoy the celebration!');
   addLog(raw,true,'Guest #'+code.num+' admitted');
@@ -679,7 +911,10 @@ function showResult(type,icon,title,sub) {
   var box=document.getElementById('result-box');
   box.className='result-box '+type;
   box.innerHTML='<div class="result-icon">'+icon+'</div><div class="result-title">'+title+'</div><div class="result-sub">'+sub+'</div>';
-  setTimeout(function(){ box.className='result-box'; box.innerHTML='<div class="result-icon">&#9671;</div><div class="result-title">READY</div><div class="result-sub">Point camera at a guest QR code</div>'; },3000);
+  setTimeout(function(){
+    box.className='result-box';
+    box.innerHTML='<div class="result-icon">&#9671;</div><div class="result-title">READY</div><div class="result-sub">Point camera at a guest QR code</div>';
+  },3000);
 }
 
 function addLog(code,ok,msg) {
@@ -698,9 +933,9 @@ function manualCheck() {
 }
 
 function updateStats() {
-  document.getElementById('stat-total').textContent=codes.length;
-  document.getElementById('stat-scanned').textContent=usedSet.size;
-  document.getElementById('stat-remaining').textContent=codes.length-usedSet.size;
+  document.getElementById('stat-total').textContent     = codes.length;
+  document.getElementById('stat-scanned').textContent   = usedSet.size;
+  document.getElementById('stat-remaining').textContent = codes.length - usedSet.size;
 }
 
 // ── MANAGE ────────────────────────────────────────────
@@ -738,10 +973,8 @@ async function resetAllUsed() {
   document.getElementById('log-list').innerHTML='<div class="log-empty">No scans yet</div>';
 }
 
-// ── SYNC STATUS ───────────────────────────────────────
+// ── UTILS ─────────────────────────────────────────────
 function setSyncStatus(state,text){ document.getElementById('sync-dot').className='sync-dot '+state; document.getElementById('sync-text').textContent=text; }
-
-// ── HASH ──────────────────────────────────────────────
 function hash(str){ var h=0; for(var i=0;i<str.length;i++) h=Math.imul(31,h)+str.charCodeAt(i)|0; return 'h'+Math.abs(h).toString(16); }
 
 // ── AUTO-RESUME ───────────────────────────────────────
@@ -757,46 +990,5 @@ function hash(str){ var h=0; for(var i=0;i<str.length;i++) h=Math.imul(31,h)+str
   }catch(e){ localStorage.removeItem('wqr_session'); }
 })();
 </script>
-
-<!--
-╔══════════════════════════════════════════════════════╗
-║  SUPABASE SQL SETUP — run this once in SQL Editor    ║
-║  supabase.com → your project → SQL Editor → New Query║
-╚══════════════════════════════════════════════════════╝
-
--- 1. Sessions table
-create table if not exists sessions (
-  id            uuid primary key default gen_random_uuid(),
-  name          text not null,
-  password_hash text not null,
-  created_at    timestamptz default now()
-);
-
--- 2. Codes table (session_id links to sessions)
-create table if not exists codes (
-  id         bigserial primary key,
-  session_id uuid not null references sessions(id) on delete cascade,
-  code_id    text not null unique,
-  num        int  not null,
-  name       text,
-  used_at    timestamptz default null,
-  created_at timestamptz default now()
-);
-
--- 3. Fast lookup index
-create index if not exists codes_session_idx on codes(session_id);
-
--- 4. Row Level Security (required by Supabase)
-alter table sessions enable row level security;
-alter table codes     enable row level security;
-
--- 5. Allow anon access (password_hash protects sessions)
-create policy "public_sessions" on sessions for all using (true) with check (true);
-create policy "public_codes"    on codes     for all using (true) with check (true);
-
--- 6. Enable realtime
-alter publication supabase_realtime add table codes;
-
--->
 </body>
 </html>
