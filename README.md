@@ -1,3 +1,5 @@
+Link: https://osamaaayman.github.io/Wedding_QR_Sytem/
+DO NOT USE WITHOUT MY PERMITION
 # Wedding QR — Entrance Management System
 
 A mobile-first web application for managing guest entry at wedding events using QR codes. Runs entirely in the browser, hosted on GitHub Pages, with a real-time Supabase database backend so multiple staff members at the door share the same live data.
@@ -32,90 +34,6 @@ wedding-qr/
 | **Delete codes** | Remove single or all codes permanently from the database |
 
 ---
-
-## One-Time Setup (≈ 10 minutes)
-
-### 1 — Create a free Supabase project
-
-1. Go to [https://supabase.com](https://supabase.com) and sign up (free).
-2. Click **New Project**, choose a name and a strong database password.
-3. Wait for the project to provision (~1 minute).
-
-### 2 — Create the database tables
-
-1. In your Supabase dashboard, go to **SQL Editor → New Query**.
-2. Paste and run the following SQL:
-
-```sql
--- Sessions table: stores each event's name and hashed password
-CREATE TABLE IF NOT EXISTS sessions (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name          TEXT NOT NULL,
-  password_hash TEXT NOT NULL,
-  created_at    TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Codes table: one row per QR code, linked to a session
-CREATE TABLE IF NOT EXISTS codes (
-  id         BIGSERIAL PRIMARY KEY,
-  session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
-  code_id    TEXT NOT NULL UNIQUE,
-  num        INT  NOT NULL,
-  name       TEXT,
-  used_at    TIMESTAMPTZ DEFAULT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Index for fast per-session lookups
-CREATE INDEX IF NOT EXISTS codes_session_idx ON codes(session_id);
-
--- Row Level Security (required by Supabase)
-ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE codes     ENABLE ROW LEVEL SECURITY;
-
--- Open policies — the password_hash field protects sessions from unauthorised access
-CREATE POLICY "public_sessions" ON sessions FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "public_codes"    ON codes     FOR ALL USING (true) WITH CHECK (true);
-
--- Enable realtime so all devices receive live updates
-ALTER PUBLICATION supabase_realtime ADD TABLE codes;
-```
-
-### 3 — Copy your API keys into app.js
-
-1. In your Supabase dashboard, go to **Project Settings → API**.
-2. Copy the **Project URL** and the **anon public** key.
-3. Open `app.js` and paste them at the top:
-
-```js
-var SUPABASE_URL      = 'https://YOUR_PROJECT.supabase.co';
-var SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE';
-```
-
-### 4 — Upload to GitHub Pages
-
-1. Create a new GitHub repository.
-2. Upload `index.html`, `style.css`, and `app.js`.
-3. Go to **Settings → Pages → Source → main branch → / (root)**.
-4. Your site will be live at `https://YOUR_USERNAME.github.io/YOUR_REPO/`.
-
----
-
-## Configuration
-
-All configurable values are at the top of `app.js`:
-
-```js
-// Supabase project URL (from Project Settings → API)
-var SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-
-// Supabase anonymous key (from Project Settings → API)
-var SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
-
-// PIN that protects the Generate and Manage pages
-// Change this to any numeric string you want
-var PAGE_PIN = '24042';
-```
 
 ---
 
