@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Wedding QR · Entrance Manager</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
@@ -84,8 +84,7 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 .sdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .sdot.live{background:var(--ok);box-shadow:0 0 5px var(--ok);animation:pd 2s infinite;}
 .sdot.syncing{background:var(--gold);animation:pd .5s infinite;}
-.sdot.off{background:#555;}
-.sdot.err{background:var(--fail);}
+.sdot.off{background:#555;}.sdot.err{background:var(--fail);}
 @keyframes pd{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* ── MAIN ──────────────────────────────── */
@@ -116,49 +115,72 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 #qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;max-height:420px;overflow-y:auto;padding:2px;}
 .qi{background:var(--paper);border-radius:4px;padding:8px 6px;text-align:center;border:1px solid var(--gold-border);}
 .qi canvas,.qi img{width:104px!important;height:104px!important;max-width:100%!important;}
-.qlbl{font-size:.58rem;color:var(--text-muted);margin-top:4px;font-family:'Cinzel',serif;letter-spacing:1px;}
 
-/* ══════════════════════════════════════════
-   SCANNER — works on iOS + Android
-   Strategy:
-   1. getUserMedia live video with requestAnimationFrame (Android Chrome, desktop)
-   2. If getUserMedia fails → fall back to file input (iOS Safari)
-   Both use jsQR + BarcodeDetector (where available)
-═══════════════════════════════════════════ */
-.scan-section{margin-bottom:14px;}
-
-/* Live video scanner */
-#video-wrap{
-  position:relative;background:#000;border-radius:10px;overflow:hidden;
-  aspect-ratio:1/1;border:2px solid var(--gold-border);display:none;
+/* ── SCANNER — html5-qrcode container ─── */
+/* Override html5-qrcode default styles to match our theme */
+#qr-reader{
+  width:100%!important;
+  border:none!important;
+  background:transparent!important;
+  padding:0!important;
 }
-#scan-video{width:100%;height:100%;object-fit:cover;display:block;}
-.scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
-.scan-frame{width:62%;aspect-ratio:1;border:2px solid var(--gold);border-radius:6px;position:relative;animation:pls 2s ease-in-out infinite;}
-.scan-frame::before,.scan-frame::after,.scan-frame>span::before,.scan-frame>span::after{content:'';position:absolute;width:20px;height:20px;border-color:var(--gold);border-style:solid;}
-.scan-frame::before{top:-2px;left:-2px;border-width:3px 0 0 3px;}
-.scan-frame::after{top:-2px;right:-2px;border-width:3px 3px 0 0;}
-.scan-frame>span::before{bottom:-2px;left:-2px;border-width:0 0 3px 3px;}
-.scan-frame>span::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0;}
-.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:sl 2s linear infinite;}
-@keyframes pls{0%,100%{opacity:1}50%{opacity:.5}}
-@keyframes sl{0%{top:5%}100%{top:95%}}
-
-/* Tap-to-scan hero (iOS fallback + initial state) */
-.scan-hero{
-  position:relative;background:var(--ink-soft);border:2px dashed var(--gold-border);
-  border-radius:12px;padding:40px 20px;text-align:center;cursor:pointer;
-  transition:border-color .2s,background .2s;-webkit-tap-highlight-color:transparent;
-  user-select:none;margin-bottom:0;
+#qr-reader video{border-radius:10px;width:100%!important;}
+#qr-reader img{display:none!important;}
+/* The scanning box border */
+#qr-reader__scan_region{
+  background:transparent!important;
+  border-radius:10px;
+  overflow:hidden;
+  min-height:250px;
 }
-.scan-hero:active,.scan-hero.active{background:rgba(200,169,110,.08);border-color:var(--gold);}
-.sh-icon{margin:0 auto 14px;}
-.sh-title{font-family:'Cinzel',serif;font-size:1rem;letter-spacing:3px;color:var(--gold);margin-bottom:6px;}
-.sh-sub{font-size:.82rem;color:var(--text-muted);line-height:1.6;}
-/* invisible file input over the whole hero — for iOS */
-#file-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0;}
-
-.scan-btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+/* Hide the default "Scan an image file" section — we build our own */
+#qr-reader__dashboard_section_swaplink{display:none!important;}
+#qr-reader__dashboard_section_fsr{display:none!important;}
+/* Camera select + start/stop buttons — style them */
+#qr-reader__dashboard{
+  background:var(--ink-soft)!important;
+  border:1px solid var(--gold-border)!important;
+  border-radius:0 0 10px 10px!important;
+  padding:10px!important;
+}
+#qr-reader__camera_permission_button,
+#qr-reader__camera_selection{
+  background:var(--gold)!important;
+  color:var(--ink)!important;
+  border:none!important;
+  border-radius:4px!important;
+  font-family:'Cinzel',serif!important;
+  font-size:.65rem!important;
+  letter-spacing:1.5px!important;
+  padding:9px 16px!important;
+  cursor:pointer!important;
+}
+#qr-reader__camera_selection{
+  background:var(--ink-soft)!important;
+  color:var(--gold)!important;
+  border:1px solid var(--gold-border)!important;
+  width:100%!important;
+  margin-bottom:8px!important;
+}
+#qr-reader__status_span{
+  font-family:'Cinzel',serif!important;
+  font-size:.62rem!important;
+  letter-spacing:1px!important;
+  color:var(--text-muted)!important;
+}
+/* Stop button injected by html5-qrcode */
+#qr-reader__dashboard_section_csr button{
+  background:transparent!important;
+  border:1px solid var(--gold-border)!important;
+  color:var(--gold)!important;
+  border-radius:4px!important;
+  font-family:'Cinzel',serif!important;
+  font-size:.62rem!important;
+  letter-spacing:1.5px!important;
+  padding:7px 14px!important;
+  cursor:pointer!important;
+  margin-top:6px!important;
+}
 
 .result-box{border-radius:var(--r);padding:20px 14px;text-align:center;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;border:2px solid var(--gold-border);background:var(--ink-soft);transition:all .25s;margin-top:12px;}
 .result-box.ok{background:var(--ok-bg);border-color:var(--ok);animation:fok .3s;}
@@ -208,15 +230,6 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:var(--ink-soft);}
 ::-webkit-scrollbar-thumb{background:var(--gold-border);border-radius:3px;}
-
-@media print{
-  #login-screen,.topbar,.bnav,.syncbar,.brow,.manual-row,#prog-ov,.scan-section,.scan-btn-row{display:none!important}
-  body{background:white;color:black;}
-  .main{padding:0!important;}
-  .page{display:block!important;}
-  #page-scan,#page-manage{display:none!important;}
-  #qr-grid{max-height:none;grid-template-columns:repeat(4,1fr);}
-}
 </style>
 </head>
 <body>
@@ -249,7 +262,7 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
           <button class="btn btn-gold btn-full" id="join-btn" onclick="doJoin()">&#9654; Join Session</button>
         </div>
         <div id="panel-create" style="display:none">
-          <div class="hint">Create a session for your event. Share the <strong>session name + password</strong> with all door staff.</div>
+          <div class="hint">Create a session for your event. Share the <strong>session name + password</strong> with all door staff so they can join on their phones.</div>
           <div class="field"><label>Session / Event Name</label><input type="text" id="create-name" placeholder="e.g. Sarah &amp; Ahmed 2025"></div>
           <div class="field"><label>Password (share with staff)</label><input type="password" id="create-pass" placeholder="Choose a shared password" onkeydown="if(event.key==='Enter')doCreate()"></div>
           <button class="btn btn-gold btn-full" id="create-btn" onclick="doCreate()">&#9672; Create Session</button>
@@ -271,8 +284,9 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
       <span class="spill" id="session-pill">&#8212;</span>
     </div>
     <div class="dtabs">
-      <button class="dtab active" onclick="showPage('gen',this)">Generate</button>
-      <button class="dtab"        onclick="showPage('scan',this)">Scanner</button>
+      <!-- Scanner is first tab now -->
+      <button class="dtab active" onclick="showPage('scan',this)">Scanner</button>
+      <button class="dtab"        onclick="showPage('gen',this)">Generate</button>
       <button class="dtab"        onclick="showPage('manage',this)">Manage</button>
     </div>
     <div class="tbend">
@@ -287,8 +301,48 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 
   <div class="main">
 
-    <!-- GENERATE -->
-    <div class="page active" id="page-gen">
+    <!-- SCANNER — first page -->
+    <div class="page active" id="page-scan">
+      <div class="ph">
+        <div class="orn">&#10022; &#10022; &#10022;</div>
+        <h1>Guest Scanner</h1>
+        <p>Works on iPhone &amp; Android &mdash; each code admits once</p>
+      </div>
+
+      <div class="sgrid">
+        <div class="scard"><span class="snum" id="stat-total">0</span><div class="slbl">Total</div></div>
+        <div class="scard"><span class="snum" id="stat-scanned">0</span><div class="slbl">Scanned</div></div>
+        <div class="scard"><span class="snum" id="stat-remaining">0</span><div class="slbl">Remaining</div></div>
+      </div>
+
+      <!--
+        html5-qrcode mounts here.
+        It handles iOS Safari + Android Chrome natively:
+        - On iOS Safari it shows the camera viewfinder via getUserMedia
+        - If that fails it falls back to file input automatically
+        - On Android Chrome it uses live continuous scanning
+      -->
+      <div id="qr-reader"></div>
+
+      <div class="result-box" id="result-box">
+        <div class="ri">&#9671;</div>
+        <div class="rt">READY</div>
+        <div class="rs">Press the camera button above to begin scanning</div>
+      </div>
+
+      <div class="manual-row">
+        <input type="text" id="manual-code" placeholder="Or type / paste code manually&hellip;" onkeydown="if(event.key==='Enter')manualCheck()">
+        <button class="btn btn-out" onclick="manualCheck()">Check</button>
+      </div>
+
+      <div class="log-wrap">
+        <div class="log-lbl">RECENT SCANS</div>
+        <div class="log-list" id="log-list"><div class="lempty">No scans yet</div></div>
+      </div>
+    </div>
+
+    <!-- GENERATE — second page -->
+    <div class="page" id="page-gen">
       <div class="ph">
         <div class="orn">&#10022; &#10022; &#10022;</div>
         <h1>QR Generator</h1>
@@ -308,72 +362,6 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
       </div>
       <div class="divider">PREVIEW</div>
       <div id="qr-grid"><div class="empty-state"><div class="ei">&#9671;</div><div>No codes yet</div></div></div>
-    </div>
-
-    <!-- SCANNER -->
-    <div class="page" id="page-scan">
-      <div class="ph">
-        <div class="orn">&#10022; &#10022; &#10022;</div>
-        <h1>Guest Scanner</h1>
-        <p>Scan QR codes at the entrance &mdash; each code works once</p>
-      </div>
-
-      <div class="sgrid">
-        <div class="scard"><span class="snum" id="stat-total">0</span><div class="slbl">Total</div></div>
-        <div class="scard"><span class="snum" id="stat-scanned">0</span><div class="slbl">Scanned</div></div>
-        <div class="scard"><span class="snum" id="stat-remaining">0</span><div class="slbl">Remaining</div></div>
-      </div>
-
-      <!-- Live video (shown when getUserMedia works — Android/desktop) -->
-      <div id="video-wrap">
-        <video id="scan-video" autoplay playsinline muted></video>
-        <div class="scan-overlay">
-          <div class="scan-frame"><span></span><div class="scan-line"></div></div>
-        </div>
-      </div>
-
-      <!-- Tap hero (shown initially; iOS uses file-input; Android uses live camera) -->
-      <div class="scan-hero" id="scan-hero">
-        <div class="sh-icon">
-          <svg width="64" height="64" viewBox="0 0 72 72" fill="none">
-            <rect x="6" y="16" width="60" height="44" rx="7" stroke="#c8a96e" stroke-width="2" fill="none"/>
-            <circle cx="36" cy="38" r="13" stroke="#c8a96e" stroke-width="1.8" fill="none"/>
-            <circle cx="36" cy="38" r="7"  stroke="#c8a96e" stroke-width="1.2" fill="none"/>
-            <circle cx="36" cy="38" r="2.2" fill="#c8a96e"/>
-            <path d="M28 16 Q28 10 34 10 L38 10 Q44 10 44 16" stroke="#c8a96e" stroke-width="1.8" fill="none"/>
-            <path d="M14 24L14 20L18 20" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M54 24L54 20L50 20" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M14 52L14 56L18 56" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M54 52L54 56L50 56" stroke="#c8a96e" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="sh-title" id="hero-title">TAP TO START CAMERA</div>
-        <div class="sh-sub" id="hero-sub">Opens live camera for continuous scanning</div>
-        <!-- iOS file fallback — only active when live camera is unavailable -->
-        <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none">
-      </div>
-
-      <div class="scan-btn-row">
-        <button class="btn btn-gold" id="btn-start" onclick="startScanner()">&#9654; Start Camera</button>
-        <button class="btn btn-out"  id="btn-stop"  onclick="stopScanner()" style="display:none">&#9632; Stop</button>
-        <button class="btn btn-out"  id="btn-photo" onclick="triggerPhotoFallback()" style="display:none">&#128247; Scan Photo</button>
-      </div>
-
-      <div class="result-box" id="result-box">
-        <div class="ri">&#9671;</div>
-        <div class="rt">READY</div>
-        <div class="rs">Press Start Camera to begin scanning</div>
-      </div>
-
-      <div class="manual-row">
-        <input type="text" id="manual-code" placeholder="Or type / paste code manually&hellip;" onkeydown="if(event.key==='Enter')manualCheck()">
-        <button class="btn btn-out" onclick="manualCheck()">Check</button>
-      </div>
-
-      <div class="log-wrap">
-        <div class="log-lbl">RECENT SCANS</div>
-        <div class="log-list" id="log-list"><div class="lempty">No scans yet</div></div>
-      </div>
     </div>
 
     <!-- MANAGE -->
@@ -399,17 +387,11 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 
   </div><!-- /main -->
 
-  <!-- BOTTOM NAV -->
-  <nav class="bnav" id="bnav">
+  <!-- BOTTOM NAV (mobile) — Scanner first -->
+  <nav class="bnav">
     <div class="bnav-inner">
-      <button class="bnav-btn active" id="bnav-gen" onclick="navTo('gen',this)">
-        <svg class="bnav-icon" viewBox="0 0 24 24" fill="none">
-          <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>
-          <circle cx="12" cy="12" r="2" fill="currentColor" opacity=".4"/>
-        </svg>
-        <span class="bnav-label">GENERATE</span>
-      </button>
-      <button class="bnav-btn" id="bnav-scan" onclick="navTo('scan',this)">
+
+      <button class="bnav-btn active" id="bnav-scan" onclick="navTo('scan',this)">
         <svg class="bnav-icon" viewBox="0 0 24 24" fill="none">
           <rect x="2" y="6" width="20" height="14" rx="2.5" stroke="currentColor" stroke-width="1.4" fill="none"/>
           <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="1.4" fill="none"/>
@@ -420,6 +402,15 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
         </svg>
         <span class="bnav-label">SCANNER</span>
       </button>
+
+      <button class="bnav-btn" id="bnav-gen" onclick="navTo('gen',this)">
+        <svg class="bnav-icon" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>
+          <circle cx="12" cy="12" r="2" fill="currentColor" opacity=".4"/>
+        </svg>
+        <span class="bnav-label">GENERATE</span>
+      </button>
+
       <button class="bnav-btn" id="bnav-manage" onclick="navTo('manage',this)">
         <svg class="bnav-icon" viewBox="0 0 24 24" fill="none">
           <line x1="9" y1="6"  x2="20" y2="6"  stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
@@ -431,6 +422,7 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
         </svg>
         <span class="bnav-label">MANAGE</span>
       </button>
+
     </div>
   </nav>
 </div>
@@ -445,7 +437,7 @@ body{font-family:'EB Garamond',Georgia,serif;background:var(--ink);color:var(--p
 
 <script>
 // ══════════════════════════════════════════════
-//  CONFIG — Supabase
+//  CONFIG
 // ══════════════════════════════════════════════
 var SUPABASE_URL      = 'https://pyfinjrjvkudyfteelkw.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5ZmluanJqdmt1ZHlmdGVlbGt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0ODk1MjQsImV4cCI6MjA5MDA2NTUyNH0.unWUjfa883HFkzaZgoOYHyMGs_7eXPkOD71EokomWLA';
@@ -454,195 +446,126 @@ var sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ── STATE ──────────────────────────────────────
 var SESSION_ID=null, SESSION_NAME=null;
 var codes=[], usedSet=new Set(), scanLog=[], realtimeSub=null;
+var html5QrScanner = null; // html5-qrcode instance
+var scannerRunning = false;
 
 // ══════════════════════════════════════════════
-//  SCANNER — Dual-strategy
-//  Strategy A: getUserMedia live video + RAF loop
-//             Works on: Android Chrome, desktop Chrome/Firefox/Safari
-//  Strategy B: <input type=file capture=environment>
-//             Works on: iOS Safari (when getUserMedia is blocked or on older iOS)
-//  We try A first. If it fails we show the photo button (Strategy B).
-//  Both decode with BarcodeDetector (fast, native) then jsQR (fallback).
+//  SCANNER — html5-qrcode
+//  This library works on BOTH:
+//  • iOS Safari  (getUserMedia live camera viewfinder)
+//  • Android Chrome (live continuous scanning)
+//  • Falls back to file input on older iOS automatically
 // ══════════════════════════════════════════════
-var scanStream = null;
-var scanActive = false;
-var scanRafId  = null;
-var usingLive  = false; // true = live video mode, false = photo mode
+function initScanner(){
+  if(html5QrScanner) return; // already initialised
 
-function startScanner(){
-  if(scanActive) return;
-
-  // Try live video first
-  if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
-    navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: 'environment' },
-        width:  { ideal: 1280 },
-        height: { ideal: 720 }
-      }
-    })
-    .then(function(stream){
-      scanStream = stream;
-      usingLive  = true;
-      scanActive = true;
-
-      var video = document.getElementById('scan-video');
-      video.srcObject = stream;
-      video.play();
-
-      document.getElementById('video-wrap').style.display = 'block';
-      document.getElementById('scan-hero').style.display  = 'none';
-      document.getElementById('btn-start').style.display  = 'none';
-      document.getElementById('btn-stop').style.display   = 'inline-flex';
-      document.getElementById('btn-photo').style.display  = 'none';
-
-      showResult('','&#9671;','SCANNING','Point camera at guest QR code');
-      rafScan();
-    })
-    .catch(function(err){
-      // Live camera failed — switch to photo mode
-      console.warn('Live camera failed:', err.message);
-      activatePhotoMode();
-    });
-  } else {
-    activatePhotoMode();
-  }
+  html5QrScanner = new Html5Qrcode('qr-reader', {
+    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+    verbose: false
+  });
 }
 
-function activatePhotoMode(){
-  usingLive  = false;
-  scanActive = false;
+function startScanner(){
+  initScanner();
+  if(scannerRunning) return;
 
-  document.getElementById('video-wrap').style.display = 'none';
-  document.getElementById('scan-hero').style.display  = 'block';
-  document.getElementById('file-input').style.display = 'block';
-  document.getElementById('btn-start').style.display  = 'none';
-  document.getElementById('btn-stop').style.display   = 'none';
-  document.getElementById('btn-photo').style.display  = 'inline-flex';
+  var config = {
+    fps: 15,
+    qrbox: function(w, h){ var s=Math.min(w,h)*0.7; return {width:s,height:s}; },
+    aspectRatio: 1.0,
+    rememberLastUsedCamera: true,
+    useBarCodeDetectorIfSupported: true   // uses native BarcodeDetector on Android/Safari 17+ — much faster
+  };
 
-  document.getElementById('hero-title').textContent = 'TAP TO SCAN';
-  document.getElementById('hero-sub').textContent   = 'Opens your camera — point at the guest\'s QR code';
-
-  // Make the whole hero trigger the file input too
-  document.getElementById('scan-hero').onclick = function(){ document.getElementById('file-input').click(); };
-  showResult('','&#9671;','READY','Tap the camera button to scan a QR code');
+  html5QrScanner.start(
+    { facingMode: 'environment' },
+    config,
+    function(decodedText){
+      // SUCCESS — QR code detected
+      processCode(decodedText);
+    },
+    function(errorMsg){
+      // per-frame error — ignore silently (normal when no QR in frame)
+    }
+  ).then(function(){
+    scannerRunning = true;
+  }).catch(function(err){
+    console.error('Scanner start failed:', err);
+    showResult('fail','!','CAMERA ERROR', 'Could not start camera. Use manual entry below.');
+  });
 }
 
 function stopScanner(){
-  scanActive = false;
-  if(scanRafId){ cancelAnimationFrame(scanRafId); scanRafId=null; }
-  if(scanStream){ scanStream.getTracks().forEach(function(t){t.stop();}); scanStream=null; }
-
-  var video = document.getElementById('scan-video');
-  video.srcObject = null;
-
-  document.getElementById('video-wrap').style.display = 'none';
-  document.getElementById('scan-hero').style.display  = 'block';
-  document.getElementById('btn-start').style.display  = 'inline-flex';
-  document.getElementById('btn-stop').style.display   = 'none';
-  document.getElementById('btn-photo').style.display  = 'none';
-  document.getElementById('file-input').style.display = 'none';
-
-  document.getElementById('hero-title').textContent = 'TAP TO START CAMERA';
-  document.getElementById('hero-sub').textContent   = 'Opens live camera for continuous scanning';
-  document.getElementById('scan-hero').onclick = null;
-  showResult('','&#9671;','STOPPED','Press Start Camera to begin scanning again');
+  if(!html5QrScanner || !scannerRunning) return;
+  html5QrScanner.stop().then(function(){
+    scannerRunning = false;
+  }).catch(function(){
+    scannerRunning = false;
+  });
 }
 
-function triggerPhotoFallback(){
-  document.getElementById('file-input').click();
-}
+// Debounce — same code ignored for 3 seconds
+var _lastCode='', _lastCodeTime=0;
 
-// ── RAF LOOP — live video decoding ──────────────
-function rafScan(){
-  if(!scanActive){ return; }
-  var video = document.getElementById('scan-video');
-  if(video.readyState >= 2){
-    decodeFrame(video, function(result){
-      if(result) processCode(result);
-    });
+async function processCode(raw){
+  var now = Date.now();
+  if(raw === _lastCode && now - _lastCodeTime < 3000) return;
+  _lastCode = raw; _lastCodeTime = now;
+
+  var code = codes.find(function(c){ return c.code_id === raw; });
+  if(!code){
+    showResult('fail','&#10005;','INVALID CODE','Not registered in this session');
+    addLog(raw, false, 'Invalid code');
+    return;
   }
-  scanRafId = requestAnimationFrame(rafScan);
-}
-
-// ── FILE INPUT — photo decoding (iOS) ───────────
-document.getElementById('file-input').addEventListener('change', function(e){
-  var file = e.target.files && e.target.files[0];
-  if(!file) return;
-
-  document.getElementById('scan-hero').classList.add('active');
-
-  var reader = new FileReader();
-  reader.onload = function(ev){
-    var img = new Image();
-    img.onload = function(){
-      // Try multiple scales — iPhone photos are huge, jsQR needs reasonable size
-      var scales = [1.0, 0.75, 0.5, 0.25];
-      var found  = false;
-      for(var si=0; si<scales.length && !found; si++){
-        var sc = scales[si];
-        var maxDim = 1600;
-        var factor = Math.min(sc, maxDim / Math.max(img.width, img.height));
-        var cv = document.createElement('canvas');
-        cv.width  = Math.round(img.width  * factor);
-        cv.height = Math.round(img.height * factor);
-        var ctx = cv.getContext('2d');
-        ctx.drawImage(img, 0, 0, cv.width, cv.height);
-        var imageData = ctx.getImageData(0, 0, cv.width, cv.height);
-        var result = jsQR(imageData.data, cv.width, cv.height, {inversionAttempts:'attemptBoth'});
-        if(result && result.data){
-          processCode(result.data);
-          found = true;
-        }
-      }
-      if(!found){
-        showResult('fail','?','NOT DETECTED','No QR code found — hold camera steady and try again');
-      }
-      document.getElementById('scan-hero').classList.remove('active');
-    };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
-  e.target.value = ''; // reset so same code can be scanned again
-});
-
-// ── UNIFIED FRAME DECODER ────────────────────────
-// Tries BarcodeDetector first (fast, native on Android Chrome & Safari 17+)
-// then falls back to jsQR.
-// Debounce: same code ignored for 3 seconds to avoid double-scans.
-var _lastRaw = '', _lastRawTime = 0;
-
-function decodeFrame(source, cb){
-  // BarcodeDetector path (Chrome Android, Safari 17+)
-  if(window.BarcodeDetector){
-    try{
-      new BarcodeDetector({formats:['qr_code']}).detect(source).then(function(barcodes){
-        if(barcodes && barcodes.length > 0){
-          var raw = barcodes[0].rawValue;
-          if(raw && !isDupe(raw)){ stamp(raw); cb(raw); }
-        }
-      }).catch(function(){});
-      return;
-    }catch(e){}
+  if(usedSet.has(raw)){
+    showResult('fail','!','ALREADY USED','Guest #'+code.num+' already entered');
+    addLog(raw, false, 'Guest #'+code.num+' – already scanned');
+    return;
   }
-
-  // jsQR path
-  var cv  = document.createElement('canvas');
-  var w   = source.videoWidth  || source.width  || 640;
-  var h   = source.videoHeight || source.height || 480;
-  // Limit to 800px for jsQR performance
-  var sc  = Math.min(1, 800 / Math.max(w, h));
-  cv.width  = Math.round(w * sc);
-  cv.height = Math.round(h * sc);
-  var ctx = cv.getContext('2d');
-  ctx.drawImage(source, 0, 0, cv.width, cv.height);
-  var id  = ctx.getImageData(0, 0, cv.width, cv.height);
-  var res = jsQR(id.data, cv.width, cv.height, {inversionAttempts:'attemptBoth'});
-  if(res && res.data && !isDupe(res.data)){ stamp(res.data); cb(res.data); }
+  var res = await sb.from('codes').update({used_at:new Date().toISOString()}).eq('code_id',raw).eq('session_id',SESSION_ID);
+  if(res.error){ showResult('fail','!','DB ERROR',res.error.message); return; }
+  usedSet.add(raw);
+  var idx = codes.findIndex(function(c){ return c.code_id===raw; });
+  if(idx!==-1) codes[idx].used_at = new Date().toISOString();
+  updateStats();
+  showResult('ok','&#10003;','WELCOME!','Guest #'+code.num+' – Enjoy the celebration!');
+  addLog(raw, true, 'Guest #'+code.num+' admitted');
 }
 
-function isDupe(raw){ return raw===_lastRaw && Date.now()-_lastRawTime < 3000; }
-function stamp(raw){ _lastRaw=raw; _lastRawTime=Date.now(); }
+function showResult(type,icon,title,sub){
+  var box=document.getElementById('result-box');
+  box.className='result-box'+(type?' '+type:'');
+  box.innerHTML='<div class="ri">'+icon+'</div><div class="rt">'+title+'</div><div class="rs">'+sub+'</div>';
+  if(type){
+    setTimeout(function(){
+      box.className='result-box';
+      box.innerHTML='<div class="ri">&#9671;</div><div class="rt">READY</div><div class="rs">Scanner is active — point at guest QR code</div>';
+    },4000);
+  }
+}
+
+function addLog(code,ok,msg){
+  var time=new Date().toLocaleTimeString();
+  scanLog.unshift({code:code,ok:ok,msg:msg,time:time});
+  var list=document.getElementById('log-list');
+  var item=document.createElement('div'); item.className='li';
+  item.innerHTML='<span class="ldot '+(ok?'ok':'fail')+'"></span><span>'+msg+'</span><span class="ltime">'+time+'</span>';
+  if(list.querySelector('.lempty')) list.innerHTML='';
+  list.prepend(item);
+  if(list.children.length>40) list.removeChild(list.lastChild);
+}
+
+function manualCheck(){
+  var val=document.getElementById('manual-code').value.trim().toUpperCase();
+  if(!val) return; processCode(val); document.getElementById('manual-code').value='';
+}
+
+function updateStats(){
+  document.getElementById('stat-total').textContent=codes.length;
+  document.getElementById('stat-scanned').textContent=usedSet.size;
+  document.getElementById('stat-remaining').textContent=codes.length-usedSet.size;
+}
 
 // ══════════════════════════════════════════════
 //  NAV
@@ -653,7 +576,8 @@ function showPage(id, btn){
   document.getElementById('page-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
   syncBnav(id);
-  if(id==='scan')   updateStats();
+  if(id==='scan'){ updateStats(); startScanner(); }
+  else            { /* don't stop scanner — keep it warm */ }
   if(id==='manage') renderManage('all');
 }
 function navTo(id, btn){
@@ -662,11 +586,11 @@ function navTo(id, btn){
   document.getElementById('page-'+id).classList.add('active');
   btn.classList.add('active');
   document.querySelectorAll('.dtab').forEach(function(t){t.classList.remove('active');});
-  if(id==='scan')   updateStats();
+  if(id==='scan'){ updateStats(); startScanner(); }
   if(id==='manage') renderManage('all');
 }
 function syncBnav(id){
-  ['gen','scan','manage'].forEach(function(x){
+  ['scan','gen','manage'].forEach(function(x){
     var b=document.getElementById('bnav-'+x);
     if(b) b.classList.toggle('active', x===id);
   });
@@ -692,10 +616,10 @@ async function doCreate(){
   var pass=document.getElementById('create-pass').value.trim();
   if(!name){showErr('Enter a session name.');return;}
   if(!pass){showErr('Enter a password.');return;}
-  btnLd('create-btn',true,'◆ Create Session');
+  btnLd('create-btn',true,'Creating…');
   var chk=await sb.from('sessions').select('id').ilike('name',name).maybeSingle();
   if(chk.data){showErr('Session name already exists. Use "Join Session".');btnLd('create-btn',false,'◆ Create Session');return;}
-  var res=await sb.from('sessions').insert({name,password_hash:hash(pass)}).select().single();
+  var res=await sb.from('sessions').insert({name:name,password_hash:hash(pass)}).select().single();
   if(res.error){showErr('Error: '+res.error.message);btnLd('create-btn',false,'◆ Create Session');return;}
   showOk('Session created! Joining…');
   setTimeout(function(){enterApp(res.data.id,name);},600);
@@ -706,7 +630,7 @@ async function doJoin(){
   var pass=document.getElementById('join-pass').value.trim();
   if(!name){showErr('Enter the session name.');return;}
   if(!pass){showErr('Enter the password.');return;}
-  btnLd('join-btn',true,'▶ Join Session');
+  btnLd('join-btn',true,'Joining…');
   var res=await sb.from('sessions').select('id,name,password_hash').ilike('name',name).maybeSingle();
   if(res.error||!res.data){showErr('Session not found.');btnLd('join-btn',false,'▶ Join Session');return;}
   if(res.data.password_hash!==hash(pass)){showErr('Incorrect password.');btnLd('join-btn',false,'▶ Join Session');return;}
@@ -724,6 +648,8 @@ async function enterApp(sid,sname){
   await loadCodes();
   subscribeRT();
   updateStats();
+  // Auto-start scanner since it's the first page
+  startScanner();
 }
 
 async function loadCodes(){
@@ -756,11 +682,13 @@ function subscribeRT(){
 
 function doLogout(){
   stopScanner();
+  if(html5QrScanner){ html5QrScanner=null; }
   if(realtimeSub){sb.removeChannel(realtimeSub);realtimeSub=null;}
   SESSION_ID=SESSION_NAME=null; codes=[]; usedSet=new Set(); scanLog=[];
   localStorage.removeItem('wqr_session');
   document.getElementById('app').style.display='none';
   document.getElementById('login-screen').style.display='';
+  document.getElementById('qr-reader').innerHTML='';
   document.getElementById('qr-grid').innerHTML='<div class="empty-state"><div class="ei">&#9671;</div><div>No codes yet</div></div>';
   document.getElementById('join-name').value=''; document.getElementById('join-pass').value='';
   clrAlerts(); switchTab('join');
@@ -809,8 +737,10 @@ function renderGrid(){
 }
 
 // ══════════════════════════════════════════════
-//  PDF — fancy serif fonts via jsPDF + Google Fonts embed
-//  Uses Times-Roman (built-in jsPDF) for elegant look
+//  PDF — Elegant serif design
+//  Font: Times (built-in jsPDF) — classic, formal
+//  Couple name: bold, large, centered
+//  Guest number: plain Arabic numerals (not Roman)
 // ══════════════════════════════════════════════
 function ldScript(src){return new Promise(function(r,e){var s=document.createElement('script');s.src=src;s.onload=r;s.onerror=e;document.head.appendChild(s);});}
 function slp(ms){return new Promise(function(r){setTimeout(r,ms);});}
@@ -818,101 +748,104 @@ function slp(ms){return new Promise(function(r){setTimeout(r,ms);});}
 function buildCard(doc, c, couple){
   var W=148, H=210;
 
-  // Cream background
-  doc.setFillColor(247, 242, 232);
+  // Warm cream background
+  doc.setFillColor(248, 243, 233);
   doc.rect(0, 0, W, H, 'F');
 
-  // Outer decorative border (double line)
-  doc.setDrawColor(180, 145, 80);
-  doc.setLineWidth(1.4);
-  doc.rect(6, 6, W-12, H-12);
-  doc.setLineWidth(0.35);
-  doc.rect(9.5, 9.5, W-19, H-19);
+  // Outer thick gold border
+  doc.setDrawColor(185, 148, 80);
+  doc.setLineWidth(1.8);
+  doc.rect(5, 5, W-10, H-10);
 
-  // Corner ornament dots
-  var cd = [[6,6],[W-6,6],[6,H-6],[W-6,H-6]];
-  doc.setFillColor(180,145,80);
-  cd.forEach(function(pt){ doc.circle(pt[0], pt[1], 1.2, 'F'); });
-
-  // ── Couple Name — large elegant serif ──
-  doc.setFont('times', 'italic');
-  doc.setFontSize(20);
-  doc.setTextColor(35, 22, 6);
-  doc.text(couple, W/2, 24, {align:'center'});
-
-  // Ornamental rule under name
-  doc.setDrawColor(180,145,80);
+  // Inner thin gold border
   doc.setLineWidth(0.4);
-  var rx = W*0.18;
-  doc.line(rx, 28, W-rx, 28);
-  // Small diamond in center of rule
-  doc.setFillColor(180,145,80);
-  var dm = [[W/2,26],[W/2+2.5,28],[W/2,30],[W/2-2.5,28]];
-  doc.triangle(dm[0][0],dm[0][1], dm[1][0],dm[1][1], dm[2][0],dm[2][1], 'F');
-  doc.triangle(dm[0][0],dm[0][1], dm[3][0],dm[3][1], dm[2][0],dm[2][1], 'F');
+  doc.rect(8.5, 8.5, W-17, H-17);
 
-  // ── QR Code ──
-  var qSize = 86;
+  // Corner flourish dots at all 4 corners
+  doc.setFillColor(185, 148, 80);
+  [[5,5],[W-5,5],[5,H-5],[W-5,H-5]].forEach(function(p){
+    doc.circle(p[0], p[1], 1.5, 'F');
+  });
+  // Mid-point dots on each border edge for extra elegance
+  [[W/2,5],[W/2,H-5],[5,H/2],[W-5,H/2]].forEach(function(p){
+    doc.circle(p[0], p[1], 0.8, 'F');
+  });
+
+  // ── TOP ORNAMENT ──
+  doc.setFont('times', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(185, 148, 80);
+  doc.text('\u2665   \u2665   \u2665', W/2, 20, {align:'center'});
+
+  // ── COUPLE NAME — bold, large Times ──
+  doc.setFont('times', 'bolditalic');
+  doc.setFontSize(22);
+  doc.setTextColor(28, 18, 5);
+  // Handle long names: wrap if needed
+  var nameLines = doc.splitTextToSize(couple, W - 24);
+  var nameY = nameLines.length > 1 ? 30 : 33;
+  doc.text(nameLines, W/2, nameY, {align:'center'});
+
+  // Decorative rule under name
+  var ruleY = nameY + (nameLines.length > 1 ? 10 : 6);
+  doc.setDrawColor(185, 148, 80);
+  doc.setLineWidth(0.5);
+  var ruleX = W * 0.15;
+  doc.line(ruleX, ruleY, W - ruleX, ruleY);
+
+  // Small diamond ornament centered on rule
+  var dx = W/2, dy = ruleY;
+  doc.setFillColor(185, 148, 80);
+  doc.triangle(dx, dy-2.5, dx+2.5, dy, dx, dy+2.5, 'F');
+  doc.triangle(dx, dy-2.5, dx-2.5, dy, dx, dy+2.5, 'F');
+
+  // ── QR CODE ──
+  var qSize = 84;
   var qX    = (W - qSize) / 2;
-  var qY    = 33;
-  var qi    = document.getElementById('qi-'+c.code_id);
-  var cv    = qi ? qi.querySelector('canvas') : null;
+  var qY    = ruleY + 7;
+
+  var qi = document.getElementById('qi-'+c.code_id);
+  var cv = qi ? qi.querySelector('canvas') : null;
   if(cv){
-    // Thin gold frame around QR
-    doc.setDrawColor(180,145,80);
-    doc.setLineWidth(0.6);
-    doc.rect(qX-2, qY-2, qSize+4, qSize+4);
+    // Gold shadow frame
+    doc.setFillColor(185, 148, 80);
+    doc.rect(qX-1.5, qY-1.5, qSize+3, qSize+3, 'F');
+    // White inner frame
+    doc.setFillColor(255,255,255);
+    doc.rect(qX-0.5, qY-0.5, qSize+1, qSize+1, 'F');
     doc.addImage(cv.toDataURL('image/png'), 'PNG', qX, qY, qSize, qSize);
   }
 
-  var aQ = qY + qSize + 6;
+  var belowQR = qY + qSize + 9;
 
-  // Ornamental rule above guest number
-  doc.setDrawColor(180,145,80);
-  doc.setLineWidth(0.4);
-  doc.line(rx, aQ, W-rx, aQ);
+  // Rule above guest info
+  doc.setDrawColor(185, 148, 80);
+  doc.setLineWidth(0.5);
+  doc.line(ruleX, belowQR, W-ruleX, belowQR);
 
-  // ── Guest number — large roman numerals style ──
+  // ── GUEST NUMBER — plain Arabic, large bold ──
   doc.setFont('times', 'bold');
-  doc.setFontSize(22);
-  doc.setTextColor(35, 22, 6);
-  doc.text('Guest  ' + toRoman(c.num), W/2, aQ+13, {align:'center'});
+  doc.setFontSize(24);
+  doc.setTextColor(28, 18, 5);
+  doc.text('Guest  ' + c.num, W/2, belowQR + 13, {align:'center'});
 
-  // Arabic numeral subtitle
-  doc.setFont('times', 'italic');
-  doc.setFontSize(10);
-  doc.setTextColor(120, 90, 40);
-  doc.text('No. ' + c.num, W/2, aQ+20, {align:'center'});
-
-  // Code reference
+  // Code reference (small, muted)
   doc.setFont('courier', 'normal');
   doc.setFontSize(7);
-  doc.setTextColor(150, 120, 70);
-  doc.text(c.code_id, W/2, aQ+28, {align:'center'});
+  doc.setTextColor(155, 120, 65);
+  doc.text(c.code_id, W/2, belowQR + 22, {align:'center'});
 
-  // Instruction line
+  // Bottom gap / instruction
   doc.setFont('times', 'italic');
-  doc.setFontSize(8.5);
-  doc.setTextColor(100, 75, 35);
-  doc.text('Please present upon arrival at the entrance', W/2, aQ+37, {align:'center'});
+  doc.setFontSize(9);
+  doc.setTextColor(105, 80, 38);
+  doc.text('Please present upon arrival', W/2, belowQR + 33, {align:'center'});
 
-  // Bottom ornament — floral motif using text chars
+  // Bottom margin ornament
   doc.setFont('times', 'normal');
-  doc.setFontSize(13);
-  doc.setTextColor(180,145,80);
-  doc.text('\u2767   \u2767   \u2767', W/2, H-10, {align:'center'});
-}
-
-// Convert number to Roman numerals (for guest numbering)
-function toRoman(num){
-  if(num > 3999) return String(num);
-  var val=[1000,900,500,400,100,90,50,40,10,9,5,4,1];
-  var sym=['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];
-  var result='';
-  for(var i=0;i<val.length;i++){
-    while(num>=val[i]){result+=sym[i];num-=val[i];}
-  }
-  return result;
+  doc.setFontSize(11);
+  doc.setTextColor(185, 148, 80);
+  doc.text('\u2767   \u2767   \u2767', W/2, H - 12, {align:'center'});
 }
 
 async function downloadPDF(){
@@ -929,63 +862,14 @@ async function downloadPDF(){
     var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a5'});
     buildCard(doc,c,couple);
     folder.file('guest_'+String(c.num).padStart(4,'0')+'_'+c.code_id+'.pdf',doc.output('arraybuffer'));
-    var pct=Math.round((i+1)/codes.length*100); fill.style.width=pct+'%'; txt.textContent=pct+'%';
+    var pct=Math.round((i+1)/codes.length*100);
+    fill.style.width=pct+'%'; txt.textContent=pct+'%';
     if(i%10===0) await slp(0);
   }
   var blob=await zip.generateAsync({type:'blob'});
   var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download=couple.replace(/[^a-z0-9]/gi,'_')+'_QR.zip'; a.click();
   ov.classList.remove('show');
-}
-
-// ══════════════════════════════════════════════
-//  PROCESS CODE
-// ══════════════════════════════════════════════
-async function processCode(raw){
-  var code=codes.find(function(c){return c.code_id===raw;});
-  if(!code){showResult('fail','&#10005;','INVALID CODE','Not registered in this session');addLog(raw,false,'Invalid code');return;}
-  if(usedSet.has(raw)){showResult('fail','!','ALREADY USED','Guest #'+code.num+' already entered');addLog(raw,false,'Guest #'+code.num+' – already scanned');return;}
-  var res=await sb.from('codes').update({used_at:new Date().toISOString()}).eq('code_id',raw).eq('session_id',SESSION_ID);
-  if(res.error){showResult('fail','!','DB ERROR',res.error.message);return;}
-  usedSet.add(raw);
-  var idx=codes.findIndex(function(c){return c.code_id===raw;});
-  if(idx!==-1) codes[idx].used_at=new Date().toISOString();
-  updateStats();
-  showResult('ok','&#10003;','WELCOME!','Guest #'+code.num+' – Enjoy the celebration!');
-  addLog(raw,true,'Guest #'+code.num+' admitted');
-}
-
-function showResult(type,icon,title,sub){
-  var box=document.getElementById('result-box');
-  box.className='result-box'+(type?' '+type:'');
-  box.innerHTML='<div class="ri">'+icon+'</div><div class="rt">'+title+'</div><div class="rs">'+sub+'</div>';
-  if(type){
-    setTimeout(function(){
-      box.className='result-box';
-      box.innerHTML='<div class="ri">&#9671;</div><div class="rt">READY</div><div class="rs">'+(usingLive?'Camera is live — point at QR code':'Tap the camera button to scan')+'</div>';
-    },4000);
-  }
-}
-
-function addLog(code,ok,msg){
-  var time=new Date().toLocaleTimeString(); scanLog.unshift({code:code,ok:ok,msg:msg,time:time});
-  var list=document.getElementById('log-list');
-  var item=document.createElement('div'); item.className='li';
-  item.innerHTML='<span class="ldot '+(ok?'ok':'fail')+'"></span><span>'+msg+'</span><span class="ltime">'+time+'</span>';
-  if(list.querySelector('.lempty')) list.innerHTML='';
-  list.prepend(item);
-  if(list.children.length>40) list.removeChild(list.lastChild);
-}
-
-function manualCheck(){
-  var val=document.getElementById('manual-code').value.trim().toUpperCase();
-  if(!val) return; processCode(val); document.getElementById('manual-code').value='';
-}
-
-function updateStats(){
-  document.getElementById('stat-total').textContent=codes.length;
-  document.getElementById('stat-scanned').textContent=usedSet.size;
-  document.getElementById('stat-remaining').textContent=codes.length-usedSet.size;
 }
 
 // ══════════════════════════════════════════════
@@ -1023,13 +907,11 @@ async function resetAllUsed(){
   document.getElementById('log-list').innerHTML='<div class="lempty">No scans yet</div>';
 }
 
-// ══════════════════════════════════════════════
-//  UTILS
-// ══════════════════════════════════════════════
+// ── UTILS ────────────────────────────────────────
 function setSS(s,t){document.getElementById('sdot').className='sdot '+s;document.getElementById('stxt').textContent=t;}
 function hash(str){var h=0;for(var i=0;i<str.length;i++)h=Math.imul(31,h)+str.charCodeAt(i)|0;return 'h'+Math.abs(h).toString(16);}
 
-// Auto-resume session
+// ── AUTO-RESUME ──────────────────────────────────
 (async function(){
   var saved=localStorage.getItem('wqr_session');
   if(!saved) return;
