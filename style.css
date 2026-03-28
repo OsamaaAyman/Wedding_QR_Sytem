@@ -293,19 +293,16 @@ body {
 /* ════════════════════════════════════════════════
    PIN OVERLAY  (shared by Generate & Manage pages)
 ════════════════════════════════════════════════ */
-/* Each page that needs PIN locking gets position:relative */
-#page-gen,
-#page-manage { position: relative; }
-
+/* PIN overlay uses fixed so it's always centered on the visible viewport,
+   regardless of how tall the page content is (e.g. 350 QR codes in manage). */
 .pin-overlay {
-  position: absolute; inset: 0;
+  position: fixed; inset: 0;
   background: rgba(13,11,8,.93);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   display: flex; align-items: center; justify-content: center;
-  z-index: 20;
-  /* min-height covers short content pages */
-  min-height: 100%;
+  z-index: 50; /* above bottom nav (40) and topbar (40) */
+  padding: 20px; /* so the box doesn't touch screen edges on small phones */
 }
 .pin-box {
   background: var(--ink-mid);
