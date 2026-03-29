@@ -384,6 +384,26 @@ body {
 /* ════════════════════════════════════════════════
    SCANNER  (html5-qrcode style overrides)
 ════════════════════════════════════════════════ */
+/* ── Camera flip control ─────────────────────── */
+.camera-controls {
+  display: flex; justify-content: flex-end;
+  margin-bottom: 6px;
+}
+.btn-flip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  background: var(--ink-soft);
+  border: 1px solid var(--gold-border);
+  border-radius: 4px;
+  color: var(--gold);
+  font-family: 'Cinzel', serif; font-size: .6rem; letter-spacing: 1.5px;
+  cursor: pointer; transition: all .2s;
+}
+.btn-flip:hover { border-color: var(--gold); background: var(--gold-glow); }
+.btn-flip:active { background: var(--gold); color: var(--ink); }
+/* Hide until scanner has started */
+.btn-flip.hidden { display: none; }
+
 #qr-reader { width: 100% !important; border: none !important; background: transparent !important; padding: 0 !important; }
 #qr-reader video { border-radius: 10px; width: 100% !important; }
 #qr-reader img { display: none !important; }
